@@ -14,11 +14,16 @@ export default function Home() {
   }, [loadProfile]);
 
   useEffect(() => {
-    // Redirect to onboarding if not completed
-    if (profile !== null && !profile.hasCompletedOnboarding) {
+    // Redirect based on profile state
+    if (profile === null) {
+      // No profile exists, go to onboarding
       router.push('/onboarding');
-    } else if (profile === null) {
+    } else if (!profile.hasCompletedOnboarding) {
+      // Profile exists but onboarding not complete
       router.push('/onboarding');
+    } else {
+      // Profile complete, go to dashboard
+      router.push('/dashboard');
     }
   }, [profile, router]);
 
