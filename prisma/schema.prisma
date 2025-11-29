@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Reading levels based on common literacy frameworks
+enum ReadingLevel {
+  BEGINNER      // Ages 5-6 (Kindergarten-1st grade)
+  EARLY         // Ages 6-7 (1st-2nd grade)
+  DEVELOPING    // Ages 7-8 (2nd-3rd grade)
+  INTERMEDIATE  // Ages 8-9 (3rd-4th grade)
+  ADVANCED      // Ages 9-10 (4th-5th grade)
+  PROFICIENT    // Ages 10+ (5th grade+)
+}
+
+// Question types for comprehension assessment
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  VOCABULARY
+  INFERENCE
+  SUMMARIZATION
+}
+
+// Story model - cached AI-generated stories
+model Story {
+  id            String        @id @default(cuid())
+  title         String
+  content       String        @db.Text
+  summary       String?       @db.Text
+  readingLevel  ReadingLevel
+  wordCount     Int
+  theme         String?       // e.g., "adventure", "science", "friendship"
+  ageRange      String?       // e.g., "6-8"
+  
+  // Metadata
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  isPublished   Boolean       @default(true)
+  
+  // Relations
+  questions     Question[]
+  sessions      ReadingSession[]
+  
+  @@index([readingLevel])
+  @@index([theme])
+  @@index([createdAt])
+}
+
+// Question model - comprehension questions for stories
+model Question {
+  id            String        @id @default(cuid())
+  storyId       String
+  story         Story         @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  
+  type          QuestionType
+  questionText  String        @db.Text
+  correctAnswer String        @db.Text
+  options       String[]      // For multiple choice questions (empty for others)
+  explanation   String?       @db.Text // Explanation of the correct answer
+  
+  difficulty    Int           @default(1) // 1-5 scale
+  orderIndex    Int           // Order of question in the story
+  
+  createdAt     DateTime      @default(now())
+  
+  // Relations
+  answers       Answer[]
+  
+  @@index([storyId])
+  @@index([type])
+}
+
+// User progress tracking (for localStorage sync and analytics)
+model UserProgress {
+  id                String        @id @default(cuid())
+  userId            String        @unique // localStorage profile ID
+  
+  currentLevel      ReadingLevel  @default(BEGINNER)
+  totalStoriesRead  Int           @default(0)
+  totalQuestionsAnswered Int      @default(0)
+  correctAnswers    Int           @default(0)
+  
+  // Skill metrics (0-100 scale)
+  comprehensionScore    Int       @default(50)
+  vocabularyScore       Int       @default(50)
+  inferenceScore        Int       @default(50)
+  summarizationScore    Int       @default(50)
+  
+  // Streak tracking
+  currentStreak     Int           @default(0)
+  longestStreak     Int           @default(0)
+  lastActiveDate    DateTime?
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Relations
+  sessions          ReadingSession[]
+  
+  @@index([userId])
+}
+
+// Reading session - tracks a user's reading of a story
+model ReadingSession {
+  id            String        @id @default(cuid())
+  userId        String
+  userProgress  UserProgress  @relation(fields: [userId], references: [userId])
+  
+  storyId       String
+  story         Story         @relation(fields: [storyId], references: [id])
+  
+  startedAt     DateTime      @default(now())
+  completedAt   DateTime?
+  
+  // Session metrics
+  readingTimeSeconds Int?      // Time spent reading
+  questionsAttempted Int       @default(0)
+  questionsCorrect   Int       @default(0)
+  score             Float?     // Percentage score
+  
+  // Relations
+  answers       Answer[]
+  
+  @@index([userId])
+  @@index([storyId])
+  @@index([startedAt])
+}
+
+// Answer model - user's answers to questions
+model Answer {
+  id            String        @id @default(cuid())
+  sessionId     String
+  session       ReadingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  questionId    String
+  question      Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  userAnswer    String        @db.Text
+  isCorrect     Boolean
+  timeSpentSeconds Int?
+  
+  createdAt     DateTime      @default(now())
+  
+  @@index([sessionId])
+  @@index([questionId])
+}
