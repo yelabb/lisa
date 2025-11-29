@@ -7,6 +7,7 @@ import { Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
 import { useUserProfile } from '@/store/user-profile';
 import { ReadingLevel } from '@/generated/prisma';
 import type { CustomTheme } from '@/types/profile';
+import { LisaWithHints } from '@/components/lisa/lisa-hints';
 
 type OnboardingData = {
   interests: string[];
@@ -105,6 +106,9 @@ export default function CompletePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 p-6 flex items-center justify-center">
+      {/* Lisa Companion */}
+      <LisaWithHints context="onboarding" step="complete" />
+      
       <div className="max-w-2xl w-full">
         {/* Success Animation */}
         <motion.div

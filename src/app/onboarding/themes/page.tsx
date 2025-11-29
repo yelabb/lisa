@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Plus, X } from 'lucide-react';
 import { DEFAULT_STORY_THEMES, TRENDING_THEMES } from '@/lib/constants';
+import { LisaWithHints } from '@/components/lisa/lisa-hints';
 
 type Theme = {
   value: string;
@@ -74,6 +75,9 @@ export default function ThemesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 p-6 flex flex-col">
+      {/* Lisa Companion */}
+      <LisaWithHints context="onboarding" step="themes" />
+      
       {/* Progress Bar */}
       <div className="max-w-4xl w-full mx-auto mb-8">
         <div className="bg-white/50 backdrop-blur-sm rounded-full h-3 overflow-hidden">

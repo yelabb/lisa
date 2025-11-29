@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { LisaWithHints } from '@/components/lisa/lisa-hints';
 
 const AGE_OPTIONS = [
   { age: 5, label: '5', emoji: '🐣', color: 'from-yellow-400 to-orange-400' },
@@ -33,6 +34,9 @@ export default function AgePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 p-6 flex flex-col">
+      {/* Lisa Companion */}
+      <LisaWithHints context="onboarding" step="age" />
+      
       {/* Progress Bar */}
       <div className="max-w-4xl w-full mx-auto mb-8">
         <div className="bg-white/50 backdrop-blur-sm rounded-full h-3 overflow-hidden">

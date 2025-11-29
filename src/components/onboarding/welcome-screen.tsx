@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Sparkles, BookOpen, Star } from 'lucide-react';
+import { LisaWithHints } from '@/components/lisa/lisa-hints';
 
 export function WelcomeScreen() {
   const router = useRouter();
@@ -18,6 +19,9 @@ export function WelcomeScreen() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Lisa Companion */}
+      <LisaWithHints context="onboarding" step="welcome" />
+      
       {/* Floating background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
