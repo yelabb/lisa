@@ -84,7 +84,10 @@ model UserProgress {
   id                String        @id @default(cuid())
   userId            String        @unique // localStorage profile ID
   
+  // Dynamic reading level with granular scoring (0-100 per level)
   currentLevel      ReadingLevel  @default(BEGINNER)
+  levelScore        Int           @default(50) // 0-100 score within current level
+  
   totalStoriesRead  Int           @default(0)
   totalQuestionsAnswered Int      @default(0)
   correctAnswers    Int           @default(0)
@@ -95,10 +98,24 @@ model UserProgress {
   inferenceScore        Int       @default(50)
   summarizationScore    Int       @default(50)
   
+  // Personalized difficulty multiplier (0.5 - 2.0, stored as int * 100)
+  difficultyMultiplier  Int       @default(100) // 100 = 1.0x difficulty
+  
+  // User theme preferences and custom themes (JSON array)
+  preferredThemes   String[]      @default([])
+  customThemes      Json?         // Array of {name, emoji, description}
+  
+  // Pop culture interests and keywords
+  interests         String[]      @default([])
+  
   // Streak tracking
   currentStreak     Int           @default(0)
   longestStreak     Int           @default(0)
   lastActiveDate    DateTime?
+  
+  // Onboarding data
+  hasCompletedOnboarding Boolean   @default(false)
+  initialAssessmentScore Int?
   
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt

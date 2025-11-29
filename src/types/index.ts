@@ -9,6 +9,17 @@ export type {
 
 export { ReadingLevel, QuestionType } from '@/generated/prisma';
 
+// Re-export profile types
+export type {
+  UserProfile,
+  CustomTheme,
+  OnboardingData,
+  AssessmentQuestion,
+  ProgressAdjustment,
+  ThemeOption,
+  UserStats,
+} from './profile';
+
 // Utility type for Prisma includes
 export type StoryWithQuestions = Story & {
   questions: Question[];
