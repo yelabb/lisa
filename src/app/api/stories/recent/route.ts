@@ -22,9 +22,6 @@ export async function GET(request: NextRequest) {
         theme: true,
         readingLevel: true,
         wordCount: true,
-        estimatedTime: true,
-        vocabulary: true,
-        metadata: true,
         createdAt: true,
       },
     });
@@ -36,9 +33,7 @@ export async function GET(request: NextRequest) {
       theme: story.theme,
       readingLevel: story.readingLevel,
       wordCount: story.wordCount,
-      estimatedTime: story.estimatedTime,
-      vocabulary: story.vocabulary,
-      emoji: (story.metadata as any)?.emoji || '📖',
+      estimatedTime: Math.ceil(story.wordCount / 100),
       createdAt: story.createdAt,
     }));
 

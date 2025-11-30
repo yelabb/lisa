@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lisa - AI Reading Assistant",
-  description: "Improve reading comprehension with personalized AI-generated stories",
+  title: "Lisa",
+  description: "Apprends à lire avec plaisir",
 };
 
 export default function RootLayout({

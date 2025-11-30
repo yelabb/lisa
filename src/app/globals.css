@@ -116,6 +116,16 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-gray-900 antialiased;
+  }
+  
+  /* Style minimaliste - typographie épurée */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-light tracking-tight;
+  }
+  
+  /* Sélection de texte subtile */
+  ::selection {
+    @apply bg-purple-100 text-purple-900;
   }
 }

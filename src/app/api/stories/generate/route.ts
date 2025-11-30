@@ -70,14 +70,7 @@ export async function POST(request: NextRequest) {
         theme: generatedStory.theme,
         readingLevel: generatedStory.readingLevel,
         wordCount: generatedStory.wordCount,
-        estimatedTime: generatedStory.estimatedTime,
-        vocabulary: generatedStory.vocabulary,
-        metadata: {
-          emoji: generatedStory.emoji,
-          generatedAt: new Date().toISOString(),
-          userAge: age,
-          interests,
-        },
+        ageRange: `${age}-${age + 2}`,
       },
     });
 
@@ -91,8 +84,8 @@ export async function POST(request: NextRequest) {
         theme: story.theme,
         readingLevel: story.readingLevel,
         wordCount: story.wordCount,
-        estimatedTime: story.estimatedTime,
-        vocabulary: story.vocabulary,
+        estimatedTime: generatedStory.estimatedTime,
+        vocabulary: generatedStory.vocabulary,
       },
     });
   } catch (error) {
@@ -167,12 +160,10 @@ export async function GET(request: NextRequest) {
         id: story.id,
         title: story.title,
         content: story.content,
-        emoji: (story.metadata as any)?.emoji || '📖',
         theme: story.theme,
         readingLevel: story.readingLevel,
         wordCount: story.wordCount,
-        estimatedTime: story.estimatedTime,
-        vocabulary: story.vocabulary,
+        estimatedTime: Math.ceil(story.wordCount / 100),
         questions: story.questions,
       },
     });
