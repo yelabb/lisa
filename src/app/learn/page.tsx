@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Pause, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Types
 type WordHint = {
@@ -58,10 +58,11 @@ export default function LearnPage() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [isPaused, setIsPaused] = useState(false);
 
   // Auto-progression de la lecture
   useEffect(() => {
-    if (currentParagraph < MOCK_STORY.content.length && !currentQuestion) {
+    if (currentParagraph < MOCK_STORY.content.length && !currentQuestion && !isPaused) {
       const timer = setTimeout(() => {
         // Après chaque 2 paragraphes, poser une question
         if ((currentParagraph + 1) % 2 === 0 && currentParagraph < MOCK_STORY.content.length - 1) {
@@ -78,7 +79,7 @@ export default function LearnPage() {
 
       return () => clearTimeout(timer);
     }
-  }, [currentParagraph, currentQuestion]);
+  }, [currentParagraph, currentQuestion, isPaused]);
 
   const handleWordClick = (word: string) => {
     const hint = MOCK_STORY.hints.find(h => 
@@ -110,6 +111,24 @@ export default function LearnPage() {
       setIsCorrect(null);
       setCurrentParagraph(prev => prev + 1);
     }, 2000);
+  };
+
+  const handlePrevious = () => {
+    if (currentParagraph > 0 && !currentQuestion) {
+      setCurrentParagraph(prev => prev - 1);
+      setIsPaused(true);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentParagraph < MOCK_STORY.content.length - 1 && !currentQuestion) {
+      setCurrentParagraph(prev => prev + 1);
+      setIsPaused(true);
+    }
+  };
+
+  const togglePause = () => {
+    setIsPaused(prev => !prev);
   };
 
   const renderWord = (word: string, index: number) => {
@@ -301,6 +320,53 @@ export default function LearnPage() {
             />
           ))}
         </div>
+
+        {/* Contrôles de navigation discrets */}
+        {!currentQuestion && currentParagraph < MOCK_STORY.content.length && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-8 flex items-center justify-center gap-3"
+          >
+            <motion.button
+              onClick={handlePrevious}
+              disabled={currentParagraph === 0}
+              whileHover={{ scale: currentParagraph > 0 ? 1.1 : 1 }}
+              whileTap={{ scale: currentParagraph > 0 ? 0.9 : 1 }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                currentParagraph > 0
+                  ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+              }`}
+            >
+              <ChevronLeft size={20} />
+            </motion.button>
+
+            <motion.button
+              onClick={togglePause}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="w-12 h-12 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-700 flex items-center justify-center transition-all"
+            >
+              {isPaused ? <Play size={20} /> : <Pause size={20} />}
+            </motion.button>
+
+            <motion.button
+              onClick={handleNext}
+              disabled={currentParagraph >= MOCK_STORY.content.length - 1}
+              whileHover={{ scale: currentParagraph < MOCK_STORY.content.length - 1 ? 1.1 : 1 }}
+              whileTap={{ scale: currentParagraph < MOCK_STORY.content.length - 1 ? 0.9 : 1 }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                currentParagraph < MOCK_STORY.content.length - 1
+                  ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+              }`}
+            >
+              <ChevronRight size={20} />
+            </motion.button>
+          </motion.div>
+        )}
       </div>
     </div>
   );
