@@ -23,63 +23,61 @@ type Question = {
 const MOCK_STORY = {
   title: "L'Aventure de Luna",
   content: [
-    "Luna était une petite fille curieuse qui aimait explorer la forêt.",
-    "Un jour, elle découvrit un papillon extraordinaire aux ailes scintillantes.",
-    "Le papillon la guida vers un arbre majestueux, caché au cœur de la forêt.",
-    "Là, Luna apprit que chaque créature avait sa propre magie.",
+    { type: 'text', text: "Luna était une petite fille curieuse qui aimait explorer la forêt." },
+    { type: 'text', text: "Un jour, elle découvrit un papillon extraordinaire aux ailes scintillantes." },
+    { 
+      type: 'question',
+      text: "Que découvre Luna dans la forêt ?",
+      options: ["Un lapin", "Un papillon", "Une fleur", "Un oiseau"],
+      correctIndex: 1,
+      explanation: "Bravo ! C'est bien un papillon aux ailes scintillantes."
+    },
+    { type: 'text', text: "Le papillon la guida vers un arbre majestueux, caché au cœur de la forêt." },
+    { 
+      type: 'question',
+      text: "Où le papillon guide-t-il Luna ?",
+      options: ["Vers une rivière", "Vers un arbre", "Vers une maison", "Vers un lac"],
+      correctIndex: 1,
+      explanation: "Exactement ! Vers un arbre majestueux."
+    },
+    { type: 'text', text: "Là, Luna apprit que chaque créature avait sa propre magie." },
   ],
   hints: [
     { word: "curieuse", definition: "Qui aime découvrir de nouvelles choses", example: "Les scientifiques sont curieux." },
     { word: "scintillantes", definition: "Qui brillent comme des étoiles", example: "Les étoiles sont scintillantes." },
     { word: "majestueux", definition: "Très beau et impressionnant", example: "Un château majestueux." },
   ],
-  questions: [
-    {
-      id: "q1",
-      text: "Que découvre Luna dans la forêt ?",
-      options: ["Un lapin", "Un papillon", "Une fleur", "Un oiseau"],
-      correctIndex: 1,
-      explanation: "Luna découvre un papillon extraordinaire aux ailes scintillantes.",
-    },
-    {
-      id: "q2",
-      text: "Où le papillon guide-t-il Luna ?",
-      options: ["Vers une rivière", "Vers un arbre", "Vers une maison", "Vers un lac"],
-      correctIndex: 1,
-      explanation: "Le papillon guide Luna vers un arbre majestueux.",
-    },
-  ],
 };
 
 export default function LearnPage() {
-  const [currentParagraph, setCurrentParagraph] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [showHint, setShowHint] = useState<WordHint | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [isPaused, setIsPaused] = useState(false);
+  const [showNavigationHint, setShowNavigationHint] = useState(true);
+
+  const currentItem = MOCK_STORY.content[currentIndex];
+  const isQuestion = currentItem?.type === 'question';
 
   // Auto-progression de la lecture
   useEffect(() => {
-    if (currentParagraph < MOCK_STORY.content.length && !currentQuestion && !isPaused) {
+    if (currentIndex < MOCK_STORY.content.length && !isPaused && !isQuestion && selectedAnswer === null) {
       const timer = setTimeout(() => {
-        // Après chaque 2 paragraphes, poser une question
-        if ((currentParagraph + 1) % 2 === 0 && currentParagraph < MOCK_STORY.content.length - 1) {
-          const questionIndex = Math.floor(currentParagraph / 2);
-          if (MOCK_STORY.questions[questionIndex]) {
-            setCurrentQuestion(MOCK_STORY.questions[questionIndex]);
-          } else {
-            setCurrentParagraph(prev => prev + 1);
-          }
-        } else {
-          setCurrentParagraph(prev => prev + 1);
-        }
+        setCurrentIndex(prev => prev + 1);
       }, 5000); // 5 secondes par paragraphe
 
       return () => clearTimeout(timer);
     }
-  }, [currentParagraph, currentQuestion, isPaused]);
+  }, [currentIndex, isPaused, isQuestion, selectedAnswer]);
+
+  // Cacher le hint de navigation après 5 secondes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowNavigationHint(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleWordClick = (word: string) => {
     const hint = MOCK_STORY.hints.find(h => 
@@ -92,11 +90,10 @@ export default function LearnPage() {
   };
 
   const handleAnswerSelect = (index: number) => {
-    if (selectedAnswer !== null || !currentQuestion) return;
+    if (selectedAnswer !== null || !isQuestion) return;
     
     setSelectedAnswer(index);
-    const correct = index === currentQuestion.correctIndex;
-    setIsCorrect(correct);
+    const correct = index === (currentItem as any).correctIndex;
     
     // Mise à jour du score en arrière-plan (pas affiché)
     setScore(prev => ({
@@ -104,31 +101,41 @@ export default function LearnPage() {
       total: prev.total + 1,
     }));
 
-    // Continuer après 2 secondes
+    // Continuer après 3 secondes pour laisser le temps de lire l'explication
     setTimeout(() => {
-      setCurrentQuestion(null);
       setSelectedAnswer(null);
-      setIsCorrect(null);
-      setCurrentParagraph(prev => prev + 1);
-    }, 2000);
+      setCurrentIndex(prev => prev + 1);
+      setIsPaused(false); // Reprendre l'auto-progression
+    }, 3000);
   };
 
   const handlePrevious = () => {
-    if (currentParagraph > 0 && !currentQuestion) {
-      setCurrentParagraph(prev => prev - 1);
+    if (currentIndex > 0 && selectedAnswer === null) {
+      setCurrentIndex(prev => prev - 1);
       setIsPaused(true);
+      setShowNavigationHint(false);
     }
   };
 
   const handleNext = () => {
-    if (currentParagraph < MOCK_STORY.content.length - 1 && !currentQuestion) {
-      setCurrentParagraph(prev => prev + 1);
+    if (currentIndex < MOCK_STORY.content.length - 1 && selectedAnswer === null) {
+      setCurrentIndex(prev => prev + 1);
       setIsPaused(true);
+      setShowNavigationHint(false);
     }
   };
 
   const togglePause = () => {
     setIsPaused(prev => !prev);
+    setShowNavigationHint(false);
+  };
+
+  const handleSideClick = (side: 'left' | 'right') => {
+    if (side === 'left') {
+      handlePrevious();
+    } else {
+      handleNext();
+    }
   };
 
   const renderWord = (word: string, index: number) => {
@@ -166,13 +173,58 @@ export default function LearnPage() {
           <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-purple-200 to-transparent mx-auto" />
         </div>
 
-        {/* Zone de contenu principale */}
-        <div className="relative min-h-[400px]">
+        {/* Hint de navigation initial */}
+        <AnimatePresence>
+          {showNavigationHint && !isQuestion && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="text-center mb-6"
+            >
+              <p className="text-xs text-gray-400 font-light">
+                Clique sur les côtés pour naviguer ← →
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Zone de contenu principale avec zones cliquables */}
+        <div className="relative min-h-[400px] flex">
+          {/* Zone cliquable gauche */}
+          {!isQuestion && currentIndex > 0 && selectedAnswer === null && (
+            <button
+              onClick={() => handleSideClick('left')}
+              className="absolute left-0 top-0 bottom-0 w-1/4 hover:bg-gray-50/50 transition-colors cursor-pointer z-10 group"
+              aria-label="Page précédente"
+            >
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <ChevronLeft size={32} className="text-gray-300" />
+              </div>
+            </button>
+          )}
+
+          {/* Zone cliquable droite */}
+          {!isQuestion && currentIndex < MOCK_STORY.content.length - 1 && selectedAnswer === null && (
+            <button
+              onClick={() => handleSideClick('right')}
+              className="absolute right-0 top-0 bottom-0 w-1/4 hover:bg-gray-50/50 transition-colors cursor-pointer z-10 group"
+              aria-label="Page suivante"
+            >
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <ChevronRight size={32} className="text-gray-300" />
+              </div>
+            </button>
+          )}
+
+          {/* Contenu central */}
+          <div className="flex-1 relative z-20 pointer-events-none">
+            <div className="pointer-events-auto">
           <AnimatePresence mode="wait">
-            {/* Affichage des paragraphes */}
-            {!currentQuestion && currentParagraph < MOCK_STORY.content.length && (
+            {/* Affichage des paragraphes de texte */}
+            {currentItem && currentItem.type === 'text' && currentIndex < MOCK_STORY.content.length && (
               <motion.div
-                key={`paragraph-${currentParagraph}`}
+                key={`text-${currentIndex}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -180,17 +232,17 @@ export default function LearnPage() {
                 className="text-center"
               >
                 <p className="text-3xl leading-relaxed text-gray-700 font-light tracking-wide">
-                  {MOCK_STORY.content[currentParagraph].split(' ').map((word, i) => 
+                  {currentItem.text.split(' ').map((word, i) => 
                     renderWord(word, i)
                   )}
                 </p>
               </motion.div>
             )}
 
-            {/* Affichage des questions */}
-            {currentQuestion && (
+            {/* Affichage des questions intégrées */}
+            {currentItem && currentItem.type === 'question' && (
               <motion.div
-                key={`question-${currentQuestion.id}`}
+                key={`question-${currentIndex}`}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -198,17 +250,17 @@ export default function LearnPage() {
                 className="space-y-8"
               >
                 <p className="text-2xl text-gray-800 font-light text-center mb-12">
-                  {currentQuestion.text}
+                  {currentItem.text}
                 </p>
 
                 <div className="space-y-3">
-                  {currentQuestion.options.map((option, index) => {
+                  {(currentItem as any).options.map((option: string, index: number) => {
                     let bgColor = 'bg-gray-50 hover:bg-gray-100';
                     let borderColor = 'border-gray-200';
                     let textColor = 'text-gray-700';
 
                     if (selectedAnswer !== null) {
-                      if (index === currentQuestion.correctIndex) {
+                      if (index === (currentItem as any).correctIndex) {
                         bgColor = 'bg-green-50';
                         borderColor = 'border-green-200';
                         textColor = 'text-green-800';
@@ -245,7 +297,7 @@ export default function LearnPage() {
                     className="text-center"
                   >
                     <p className="text-sm text-gray-500 font-light">
-                      {currentQuestion.explanation}
+                      {(currentItem as any).explanation}
                     </p>
                   </motion.div>
                 )}
@@ -253,7 +305,7 @@ export default function LearnPage() {
             )}
 
             {/* Fin de l'histoire */}
-            {currentParagraph >= MOCK_STORY.content.length && !currentQuestion && (
+            {currentIndex >= MOCK_STORY.content.length && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -274,6 +326,8 @@ export default function LearnPage() {
               </motion.div>
             )}
           </AnimatePresence>
+            </div>
+          </div>
         </div>
 
         {/* Hint tooltip */}
@@ -315,14 +369,14 @@ export default function LearnPage() {
             <div
               key={index}
               className={`h-1 w-8 rounded-full transition-colors ${
-                index <= currentParagraph ? 'bg-purple-300' : 'bg-gray-200'
+                index <= currentIndex ? 'bg-purple-300' : 'bg-gray-200'
               }`}
             />
           ))}
         </div>
 
         {/* Contrôles de navigation discrets */}
-        {!currentQuestion && currentParagraph < MOCK_STORY.content.length && (
+        {currentIndex < MOCK_STORY.content.length && selectedAnswer === null && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -331,11 +385,11 @@ export default function LearnPage() {
           >
             <motion.button
               onClick={handlePrevious}
-              disabled={currentParagraph === 0}
-              whileHover={{ scale: currentParagraph > 0 ? 1.1 : 1 }}
-              whileTap={{ scale: currentParagraph > 0 ? 0.9 : 1 }}
+              disabled={currentIndex === 0}
+              whileHover={{ scale: currentIndex > 0 ? 1.1 : 1 }}
+              whileTap={{ scale: currentIndex > 0 ? 0.9 : 1 }}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                currentParagraph > 0
+                currentIndex > 0
                   ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                   : 'bg-gray-50 text-gray-300 cursor-not-allowed'
               }`}
@@ -354,11 +408,11 @@ export default function LearnPage() {
 
             <motion.button
               onClick={handleNext}
-              disabled={currentParagraph >= MOCK_STORY.content.length - 1}
-              whileHover={{ scale: currentParagraph < MOCK_STORY.content.length - 1 ? 1.1 : 1 }}
-              whileTap={{ scale: currentParagraph < MOCK_STORY.content.length - 1 ? 0.9 : 1 }}
+              disabled={currentIndex >= MOCK_STORY.content.length - 1}
+              whileHover={{ scale: currentIndex < MOCK_STORY.content.length - 1 ? 1.1 : 1 }}
+              whileTap={{ scale: currentIndex < MOCK_STORY.content.length - 1 ? 0.9 : 1 }}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                currentParagraph < MOCK_STORY.content.length - 1
+                currentIndex < MOCK_STORY.content.length - 1
                   ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                   : 'bg-gray-50 text-gray-300 cursor-not-allowed'
               }`}
