@@ -41,75 +41,76 @@ yarn dev
 
 Ouvrir [http://localhost:3000](http://localhost:3000) pour voir l'application.
 
-## 📁 Project Structure
+## 📁 Structure du Projet
 
 ```
 lisa-next/
 ├── src/
-│   ├── app/              # Next.js app router pages
-│   ├── components/       # React components
-│   ├── lib/              # Utility functions and configurations
-│   │   ├── prisma.ts     # Prisma client singleton
-│   │   ├── groq.ts       # Groq AI client
-│   │   └── constants.ts  # App constants
-│   ├── providers/        # React context providers
-│   ├── types/            # TypeScript type definitions
-│   └── generated/        # Generated Prisma client
-├── prisma/
-│   ├── schema.prisma     # Database schema
-│   └── migrations/       # Database migrations
-└── public/               # Static assets
+│   ├── app/
+│   │   ├── learn/         # Page principale unique
+│   │   ├── page.tsx       # Redirection vers /learn
+│   │   ├── layout.tsx     # Layout global minimaliste
+│   │   └── globals.css    # Styles globaux épurés
+│   └── components/
+│       ├── ui/            # Composants UI de base
+│       ├── lisa/          # Composants Lisa (animations)
+│       └── error-boundary.tsx
+└── public/                # Assets statiques
 ```
 
-## 🗄️ Database Schema
+## 🎯 Fonctionnalités
 
-- **Story**: AI-generated stories with reading level classification
-- **Question**: Comprehension questions with multiple types
-- **UserProgress**: Tracks skill development and streaks
-- **ReadingSession**: Individual reading records
-- **Answer**: Question responses with correctness tracking
+### 📖 Lecture Progressive
+- Les paragraphes apparaissent un par un (5 secondes chacun)
+- Animation douce et fluide
+- Auto-progression avec possibilité de pause
 
-## 📚 Available Scripts
+### 💡 Hints Intégrés
+- Mots importants soulignés en pointillés
+- Clic → tooltip élégant avec définition et exemple
+- Non intrusif, contrôlé par l'enfant
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
-- `npx prisma studio` - Open Prisma Studio (database GUI)
-- `npx prisma migrate dev` - Create and apply migrations
+### ❓ Questions Naturelles
+- Intégrées dans le flux de l'histoire
+- Interface épurée, feedback visuel subtil
+- Explications douces après chaque réponse
+- Pas de score visible, analyse en arrière-plan
 
-## 🎯 Reading Levels
+### 🎨 Navigation Intuitive
+- **Clic sur les côtés** de l'écran pour naviguer
+- **Boutons discrets** en bas (précédent, pause/play, suivant)
+- **Indicateurs minimalistes** de progression
+- **Hint initial** qui disparaît après 5 secondes
 
-Lisa supports 6 reading levels:
-- **Beginner** (Ages 5-6) - Kindergarten to 1st grade
-- **Early Reader** (Ages 6-7) - 1st to 2nd grade
-- **Developing** (Ages 7-8) - 2nd to 3rd grade
-- **Intermediate** (Ages 8-9) - 3rd to 4th grade
-- **Advanced** (Ages 9-10) - 4th to 5th grade
-- **Proficient** (Ages 10+) - 5th grade and up
+## 🎨 Design Principles
 
-## 🎨 Story Themes
+- **Fond blanc épuré** - Zéro distraction
+- **Typographie légère** - Font-weight: light
+- **Couleurs neutres** - Gris doux, touches de violet
+- **Animations subtiles** - Framer Motion
+- **Espacement généreux** - Respiration visuelle
+- **Focus sur le contenu** - Interface invisible
 
-Adventure, Animals, Science, Friendship, Fantasy, Mystery, Space, Nature, Sports, Family
+## 🚀 Prochaines Étapes
 
-## 📝 Development Status
+- [ ] Intégration API Groq pour génération d'histoires
+- [ ] Système de persistence (localStorage)
+- [ ] Bibliothèque d'histoires
+- [ ] Personnalisation (âge, niveau, intérêts)
+- [ ] Mode hors ligne complet
+- [ ] Audio text-to-speech optionnel
 
-✅ Phase 1 - Foundation (In Progress)
-- [x] Next.js project setup
-- [x] Prisma & Neon PostgreSQL configuration
-- [x] Environment & dependencies setup
-- [ ] localStorage user profile system
-- [ ] Core UI layouts with shadcn/ui
-- [ ] Groq AI story generation service
-- [ ] Question generation system
-- [ ] Reading session flow
-- [ ] Progress tracking & leveling
-- [ ] Story caching & optimization
+## 📝 Scripts Disponibles
 
-## 🤝 Contributing
+- `yarn dev` - Serveur de développement
+- `yarn build` - Build de production
+- `yarn start` - Serveur de production
+- `yarn lint` - ESLint
 
-This is a learning project. Contributions, issues, and feature requests are welcome!
+## 🤝 Contribution
 
-## 📄 License
+Projet éducatif. Contributions bienvenues !
 
-This project is for educational purposes.
+## 📄 Licence
+
+Projet à but éducatif.
