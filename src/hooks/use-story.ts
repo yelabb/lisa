@@ -7,6 +7,7 @@ interface GenerateStoryParams {
   interests?: string[];
   difficultyMultiplier?: number;
   language?: string;
+  excludeIds?: string[];
 }
 
 // Generate a new story

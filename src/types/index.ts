@@ -147,6 +147,7 @@ export interface GenerateStoryRequest {
   interests?: string[];
   difficultyMultiplier?: number;
   language?: string;
+  excludeIds?: string[];
 }
 
 export interface GenerateStoryResponse {

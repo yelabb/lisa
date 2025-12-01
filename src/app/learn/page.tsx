@@ -112,7 +112,7 @@ export default function LearnPage() {
   };
 
   // Load story when user is ready
-  const loadNewStory = useCallback(async () => {
+  const loadNewStory = useCallback(async (excludeStoryId?: string) => {
     if (!progress) return;
 
     setLisaState('thinking', language === 'fr' 
@@ -126,6 +126,7 @@ export default function LearnPage() {
         interests: progress.interests,
         difficultyMultiplier: progress.difficultyMultiplier,
         language: language || 'fr',
+        excludeIds: excludeStoryId ? [excludeStoryId] : [],
       });
 
       setStory(result.story);
@@ -274,11 +275,12 @@ export default function LearnPage() {
 
   // Handle next story
   const handleNextStory = () => {
+    const currentStoryId = story?.id;
     resetSession();
     setSessionId(null);
     setIsCompleted(false);
     hasTriggeredLoadRef.current = false;
-    loadNewStory();
+    loadNewStory(currentStoryId);
   };
 
   // Render word with possible hint

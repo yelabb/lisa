@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
       interests = [],
       difficultyMultiplier = 1.0,
       language = 'fr',
+      excludeIds = [],
     } = body;
 
     // Validate reading level
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
     const cachedStory = await getCachedStory({
       readingLevel,
       theme,
+      excludeIds,
     });
 
     if (cachedStory) {
