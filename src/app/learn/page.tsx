@@ -232,10 +232,14 @@ export default function LearnPage() {
   const handleWordClick = (word: string) => {
     if (!story) return;
     
-    const hint = story.hints.find(h => 
-      word.toLowerCase().includes(h.word.toLowerCase()) || 
-      h.word.toLowerCase().includes(word.toLowerCase())
-    );
+    // Nettoyer le mot des caractères de ponctuation pour la comparaison
+    const cleanWord = word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ]/g, '');
+    
+    // Correspondance exacte uniquement
+    const hint = story.hints.find(h => {
+      const cleanHint = h.word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ]/g, '');
+      return cleanWord === cleanHint;
+    });
     
     if (hint) {
       setShowHint(hint);
@@ -306,10 +310,14 @@ export default function LearnPage() {
   const renderWord = (word: string, index: number) => {
     if (!story) return word + ' ';
     
-    const hasHint = story.hints.some(h => 
-      word.toLowerCase().includes(h.word.toLowerCase()) || 
-      h.word.toLowerCase().includes(word.toLowerCase())
-    );
+    // Nettoyer le mot des caractères de ponctuation pour la comparaison
+    const cleanWord = word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ]/g, '');
+    
+    // Correspondance exacte uniquement (pas de includes partiel)
+    const hasHint = story.hints.some(h => {
+      const cleanHint = h.word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ]/g, '');
+      return cleanWord === cleanHint;
+    });
 
     if (!hasHint) return word + ' ';
 
