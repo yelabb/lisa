@@ -1,10 +1,9 @@
 import { prisma } from './prisma';
-import type { ReadingLevel, UserProgress } from '@/types';
+import type { UserProgress } from '@/types';
 import { ReadingLevel as PrismaReadingLevel } from '@/generated/prisma';
 import {
   SCORE_ADJUSTMENTS,
   DIFFICULTY_ADJUSTMENT,
-  READING_LEVEL_INFO,
 } from '@/lib/constants';
 
 /**
@@ -38,7 +37,7 @@ export async function updateProgressAfterQuestion(params: {
   questionType: string;
   difficulty: number;
 }): Promise<UserProgress> {
-  const { userId, isCorrect, questionType, difficulty } = params;
+  const { userId, isCorrect, questionType } = params;
 
   const dbProgress = await prisma.userProgress.findUnique({
     where: { userId },
@@ -48,38 +47,6 @@ export async function updateProgressAfterQuestion(params: {
     throw new Error('User progress not found');
   }
 
-  // Calculate score change based on difficulty
-  const baseChange = isCorrect
-    ? SCORE_ADJUSTMENTS.CORRECT_ANSWER
-    : SCORE_ADJUSTMENTS.INCORRECT_ANSWER;
-  
-  const difficultyBonus = isCorrect ? Math.floor(difficulty / 2) : 0;
-  const scoreChange = baseChange + difficultyBonus;
-
-  // Calculate new level score
-  let newLevelScore = Math.max(
-    SCORE_ADJUSTMENTS.MIN_SCORE,
-    Math.min(SCORE_ADJUSTMENTS.MAX_SCORE, dbProgress.levelScore + scoreChange)
-  );
-
-  // Check for level up/down
-  let newLevel = dbProgress.currentLevel as ReadingLevel;
-  const levelInfo = READING_LEVEL_INFO[newLevel];
-
-  if (newLevelScore >= levelInfo.scoreToAdvance) {
-    const nextLevel = getNextLevel(newLevel);
-    if (nextLevel) {
-      newLevel = nextLevel;
-      newLevelScore = 50; // Start in middle of new level
-    }
-  } else if (newLevelScore <= 10 && newLevel !== 'BEGINNER') {
-    const prevLevel = getPreviousLevel(newLevel);
-    if (prevLevel) {
-      newLevel = prevLevel;
-      newLevelScore = 70; // Start higher in previous level
-    }
-  }
-
   // Update skill scores based on question type
   const skillUpdates = getSkillUpdates(questionType, isCorrect, dbProgress);
 
@@ -87,8 +54,6 @@ export async function updateProgressAfterQuestion(params: {
   const updatedProgress = await prisma.userProgress.update({
     where: { userId },
     data: {
-      currentLevel: newLevel as PrismaReadingLevel,
-      levelScore: newLevelScore,
       totalQuestionsAnswered: { increment: 1 },
       correctAnswers: isCorrect ? { increment: 1 } : undefined,
       ...skillUpdates,
@@ -119,7 +84,7 @@ export async function updateProgressAfterStory(params: {
 
   const accuracy = questionsAttempted > 0 ? questionsCorrect / questionsAttempted : 0;
 
-  // Calculate difficulty adjustment
+  // Calculate difficulty adjustment - single source of truth
   let newDifficultyMultiplier = dbProgress.difficultyMultiplier;
   if (accuracy >= DIFFICULTY_ADJUSTMENT.INCREASE_THRESHOLD / 100) {
     newDifficultyMultiplier = Math.min(
@@ -157,12 +122,6 @@ export async function updateProgressAfterStory(params: {
 
   const longestStreak = Math.max(dbProgress.longestStreak, newStreak);
 
-  // Bonus for perfect session
-  let bonusScore = 0;
-  if (accuracy === 1.0 && questionsAttempted >= 3) {
-    bonusScore = SCORE_ADJUSTMENTS.PERFECT_SESSION;
-  }
-
   const updatedProgress = await prisma.userProgress.update({
     where: { userId },
     data: {
@@ -171,7 +130,6 @@ export async function updateProgressAfterStory(params: {
       currentStreak: newStreak,
       longestStreak,
       lastActiveDate: today,
-      levelScore: Math.min(100, dbProgress.levelScore + bonusScore),
     },
   });
 
@@ -206,22 +164,17 @@ export async function saveUserPreferences(params: {
  */
 export async function completeOnboarding(params: {
   userId: string;
-  initialLevel: ReadingLevel;
-  assessmentScore: number;
   preferredThemes: string[];
   interests: string[];
 }): Promise<UserProgress> {
-  const { userId, initialLevel, assessmentScore, preferredThemes, interests } = params;
+  const { userId, preferredThemes, interests } = params;
 
   const updatedProgress = await prisma.userProgress.update({
     where: { userId },
     data: {
-      currentLevel: initialLevel as PrismaReadingLevel,
-      levelScore: assessmentScore,
       preferredThemes,
       interests,
       hasCompletedOnboarding: true,
-      initialAssessmentScore: assessmentScore,
     },
   });
 
@@ -257,8 +210,6 @@ function mapDbProgressToUserProgress(dbProgress: {
   return {
     id: dbProgress.id,
     userId: dbProgress.userId,
-    currentLevel: dbProgress.currentLevel as ReadingLevel,
-    levelScore: dbProgress.levelScore,
     totalStoriesRead: dbProgress.totalStoriesRead,
     totalQuestionsAnswered: dbProgress.totalQuestionsAnswered,
     correctAnswers: dbProgress.correctAnswers,
@@ -268,7 +219,7 @@ function mapDbProgressToUserProgress(dbProgress: {
       inference: dbProgress.inferenceScore,
       summarization: dbProgress.summarizationScore,
     },
-    difficultyMultiplier: dbProgress.difficultyMultiplier / 100,
+    difficultyMultiplier: dbProgress.difficultyMultiplier / 100, // DB stores as int 50-200, convert to 0.5-2.0
     preferredThemes: dbProgress.preferredThemes,
     customThemes: (dbProgress.customThemes as Array<{ name: string; emoji: string; description: string }>) || [],
     interests: dbProgress.interests,
@@ -276,36 +227,9 @@ function mapDbProgressToUserProgress(dbProgress: {
     longestStreak: dbProgress.longestStreak,
     lastActiveDate: dbProgress.lastActiveDate?.toISOString() || null,
     hasCompletedOnboarding: dbProgress.hasCompletedOnboarding,
-    initialAssessmentScore: dbProgress.initialAssessmentScore,
     createdAt: dbProgress.createdAt.toISOString(),
     updatedAt: dbProgress.updatedAt.toISOString(),
   };
-}
-
-function getNextLevel(current: ReadingLevel): ReadingLevel | null {
-  const levels: ReadingLevel[] = [
-    'BEGINNER',
-    'EARLY',
-    'DEVELOPING',
-    'INTERMEDIATE',
-    'ADVANCED',
-    'PROFICIENT',
-  ];
-  const currentIndex = levels.indexOf(current);
-  return currentIndex < levels.length - 1 ? levels[currentIndex + 1] : null;
-}
-
-function getPreviousLevel(current: ReadingLevel): ReadingLevel | null {
-  const levels: ReadingLevel[] = [
-    'BEGINNER',
-    'EARLY',
-    'DEVELOPING',
-    'INTERMEDIATE',
-    'ADVANCED',
-    'PROFICIENT',
-  ];
-  const currentIndex = levels.indexOf(current);
-  return currentIndex > 0 ? levels[currentIndex - 1] : null;
 }
 
 function getSkillUpdates(

@@ -1,41 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateStory, generateQuestions } from '@/lib/services/groq';
 import { createStoryWithQuestions, getCachedStory } from '@/lib/db/stories';
-import type { ReadingLevel, GenerateStoryRequest } from '@/types';
+import type { GenerateStoryRequest } from '@/types';
+import { difficultyToReadingLevel } from '@/types';
 
 export async function POST(request: NextRequest) {
   const body: GenerateStoryRequest = await request.json();
   
   const {
-    readingLevel = 'BEGINNER',
+    difficultyMultiplier = 1.0,
     theme = 'adventure',
     themes = [],
     interests = [],
-    difficultyMultiplier = 1.0,
     language = 'fr',
     excludeIds = [],
     useCacheOnly = false, // Nouveau: utiliser uniquement le cache (pour mode hors-ligne)
   } = body;
 
+  // Derive reading level from difficulty multiplier
+  const readingLevel = difficultyToReadingLevel(difficultyMultiplier);
+
   // Utiliser themes[] si fourni, sinon fallback sur theme
   const allThemes = themes.length > 0 ? themes : [theme];
-
-  // Validate reading level
-  const validLevels: ReadingLevel[] = [
-    'BEGINNER',
-    'EARLY',
-    'DEVELOPING',
-    'INTERMEDIATE',
-    'ADVANCED',
-    'PROFICIENT',
-  ];
-  
-  if (!validLevels.includes(readingLevel)) {
-    return NextResponse.json(
-      { error: 'Invalid reading level' },
-      { status: 400 }
-    );
-  }
 
   // ============================================
   // STRATÉGIE: ONLINE FIRST, CACHE EN FALLBACK
@@ -68,19 +54,17 @@ export async function POST(request: NextRequest) {
     
     // Generate new story with Groq
     const generatedStory = await generateStory({
-      readingLevel,
+      difficultyMultiplier,
       themes: allThemes,
       interests,
-      difficultyMultiplier,
       language,
     });
 
     // Generate questions for the story
     const questions = await generateQuestions({
       story: generatedStory,
-      readingLevel,
-      numQuestions: 5,
       difficultyMultiplier,
+      numQuestions: 5,
       language,
     });
 

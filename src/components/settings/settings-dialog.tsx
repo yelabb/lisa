@@ -214,6 +214,9 @@ const TEXTS = {
   fr: {
     title: 'Paramètres',
     language: 'Langue',
+    difficulty: 'Difficulté',
+    difficultyHint: 'Ajuste la complexité des histoires',
+    difficultyLevels: ['Très facile', 'Facile', 'Normal', 'Difficile', 'Expert'],
     themes: 'Thèmes préférés',
     themesHint: 'Choisis au moins 1 thème',
     save: 'Enregistrer',
@@ -223,6 +226,9 @@ const TEXTS = {
   en: {
     title: 'Settings',
     language: 'Language',
+    difficulty: 'Difficulty',
+    difficultyHint: 'Adjust story complexity',
+    difficultyLevels: ['Very easy', 'Easy', 'Normal', 'Hard', 'Expert'],
     themes: 'Favorite themes',
     themesHint: 'Pick at least 1 theme',
     save: 'Save',
@@ -232,11 +238,14 @@ const TEXTS = {
 };
 
 export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
-  const { language, progress, setLanguage, setPreferences } = useUserProgressStore();
+  const { language, progress, setLanguage, setPreferences, setDifficulty } = useUserProgressStore();
   
   const [selectedLanguage, setSelectedLanguage] = useState(language || 'fr');
   const [selectedThemes, setSelectedThemes] = useState<string[]>(
     progress?.preferredThemes || []
+  );
+  const [selectedDifficulty, setSelectedDifficulty] = useState(
+    progress?.difficultyMultiplier || 1.0
   );
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
@@ -248,10 +257,11 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
       queueMicrotask(() => {
         setSelectedLanguage(language || 'fr');
         setSelectedThemes(progress?.preferredThemes || []);
+        setSelectedDifficulty(progress?.difficultyMultiplier || 1.0);
         setExpandedCategories([]);
       });
     }
-  }, [isOpen, language, progress?.preferredThemes]);
+  }, [isOpen, language, progress?.preferredThemes, progress?.difficultyMultiplier]);
 
   const handleToggleTheme = (themeId: string) => {
     setSelectedThemes(prev => 
@@ -274,15 +284,20 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   };
 
   const handleSave = () => {
-    // Vérifier si les thèmes ont changé
+    // Vérifier si les thèmes ou la difficulté ont changé
     const originalThemes = progress?.preferredThemes || [];
+    const originalDifficulty = progress?.difficultyMultiplier || 1.0;
+    
     const themesChanged = 
       selectedThemes.length !== originalThemes.length ||
       selectedThemes.some(theme => !originalThemes.includes(theme));
     
+    const difficultyChanged = selectedDifficulty !== originalDifficulty;
+    
     setLanguage(selectedLanguage);
     setPreferences(selectedThemes, progress?.interests || []);
-    onClose(themesChanged);
+    setDifficulty(selectedDifficulty);
+    onClose(themesChanged || difficultyChanged);
   };
 
   const canSave = selectedThemes.length >= 1;
@@ -359,6 +374,55 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                       )}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* Difficulty slider */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.difficulty}
+                </label>
+                <p className="text-xs text-gray-400 mb-3">{t.difficultyHint}</p>
+                
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                  {/* Difficulty level indicator */}
+                  <div className="flex justify-between mb-3">
+                    {t.difficultyLevels.map((level, index) => {
+                      // Map index to difficulty: 0=0.5, 1=0.75, 2=1.0, 3=1.5, 4=2.0
+                      const difficultyValues = [0.5, 0.75, 1.0, 1.5, 2.0];
+                      const isActive = Math.abs(selectedDifficulty - difficultyValues[index]) < 0.13;
+                      return (
+                        <button
+                          key={level}
+                          onClick={() => setSelectedDifficulty(difficultyValues[index])}
+                          className={`text-xs font-medium px-2 py-1 rounded-full transition-all ${
+                            isActive
+                              ? 'bg-purple-500 text-white'
+                              : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                        >
+                          {level}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Slider */}
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2.0"
+                    step="0.05"
+                    value={selectedDifficulty}
+                    onChange={(e) => setSelectedDifficulty(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                  />
+                  
+                  {/* Emoji indicators */}
+                  <div className="flex justify-between mt-2 text-xl">
+                    <span>🐣</span>
+                    <span>🎓</span>
+                  </div>
                 </div>
               </div>
 

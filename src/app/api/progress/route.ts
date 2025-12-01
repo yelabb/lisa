@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrCreateUserProgress, saveUserPreferences, completeOnboarding } from '@/lib/db/progress';
-import type { ReadingLevel } from '@/types';
 
 // GET - Retrieve user progress
 export async function GET(request: NextRequest) {
@@ -43,12 +42,10 @@ export async function PUT(request: NextRequest) {
 
     if (action === 'complete-onboarding') {
       // Complete onboarding
-      const { initialLevel, assessmentScore, preferredThemes, interests } = data;
+      const { preferredThemes, interests } = data;
       
       progress = await completeOnboarding({
         userId,
-        initialLevel: (initialLevel as ReadingLevel) || 'BEGINNER',
-        assessmentScore: assessmentScore || 50,
         preferredThemes: preferredThemes || [],
         interests: interests || [],
       });

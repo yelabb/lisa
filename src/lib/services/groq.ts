@@ -5,6 +5,7 @@ import type {
   GeneratedQuestion,
   QuestionType,
 } from '@/types';
+import { difficultyToReadingLevel } from '@/types';
 import { READING_LEVEL_INFO } from '@/lib/constants';
 
 // Import messages directly for server-side use
@@ -72,19 +73,20 @@ function getStyleRequirements(readingLevel: ReadingLevel, t: typeof frMessages.p
  * Generate a story tailored to the user's reading level and interests
  */
 export async function generateStory(params: {
-  readingLevel: ReadingLevel;
+  difficultyMultiplier: number;
   themes?: string[];
   interests?: string[];
-  difficultyMultiplier?: number;
   language?: string;
 }): Promise<GeneratedStory> {
   const { 
-    readingLevel, 
+    difficultyMultiplier = 1.0,
     themes = ['adventure'], 
     interests = [], 
-    difficultyMultiplier = 1.0,
     language = 'fr'
   } = params;
+  
+  // Derive reading level from difficulty multiplier
+  const readingLevel = difficultyToReadingLevel(difficultyMultiplier);
   
   // Get localized messages
   const t = getMessages(language).prompts;
@@ -211,18 +213,19 @@ ${t.jsonFormat}
  */
 export async function generateQuestions(params: {
   story: GeneratedStory;
-  readingLevel: ReadingLevel;
+  difficultyMultiplier: number;
   numQuestions?: number;
-  difficultyMultiplier?: number;
   language?: string;
 }): Promise<GeneratedQuestion[]> {
   const { 
     story, 
-    readingLevel, 
-    numQuestions = 5, 
     difficultyMultiplier = 1.0,
+    numQuestions = 5, 
     language = 'fr'
   } = params;
+  
+  // Derive reading level from difficulty
+  const readingLevel = difficultyToReadingLevel(difficultyMultiplier);
   
   // Get localized messages
   const t = getMessages(language).questions;

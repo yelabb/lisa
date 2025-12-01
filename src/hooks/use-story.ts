@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Story, ReadingLevel, GenerateStoryResponse } from '@/types';
+import type { Story, GenerateStoryResponse } from '@/types';
 
 interface GenerateStoryParams {
-  readingLevel: ReadingLevel;
+  difficultyMultiplier: number; // 0.5 to 2.0 - single source of truth
   theme?: string;
   themes?: string[]; // Plusieurs thèmes à combiner
   interests?: string[];
-  difficultyMultiplier?: number;
   language?: string;
   excludeIds?: string[];
   useCacheOnly?: boolean; // Utiliser uniquement le cache (mode hors-ligne)

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { UserProgress, ReadingLevel, SkillScores } from '@/types';
+import type { UserProgress, SkillScores } from '@/types';
 
 // Generate a unique user ID
 function generateUserId(): string {
@@ -17,8 +17,6 @@ const DEFAULT_SKILLS: SkillScores = {
 
 const DEFAULT_PROGRESS: Omit<UserProgress, 'id' | 'createdAt' | 'updatedAt'> = {
   userId: '',
-  currentLevel: 'BEGINNER',
-  levelScore: 50,
   totalStoriesRead: 0,
   totalQuestionsAnswered: 0,
   correctAnswers: 0,
@@ -31,7 +29,6 @@ const DEFAULT_PROGRESS: Omit<UserProgress, 'id' | 'createdAt' | 'updatedAt'> = {
   longestStreak: 0,
   lastActiveDate: null,
   hasCompletedOnboarding: false,
-  initialAssessmentScore: null,
 };
 
 interface UserProgressState {
@@ -48,13 +45,13 @@ interface UserProgressState {
   initializeUser: () => void;
   setProgress: (progress: UserProgress) => void;
   setLanguage: (language: string) => void;
-  updateLevel: (level: ReadingLevel, score: number) => void;
   updateSkills: (skills: Partial<SkillScores>) => void;
+  setDifficulty: (difficulty: number) => void;
   incrementStoriesRead: () => void;
   recordAnswer: (isCorrect: boolean) => void;
   setPreferences: (themes: string[], interests: string[]) => void;
   addCustomTheme: (theme: { name: string; emoji: string; description: string }) => void;
-  completeOnboarding: (level: ReadingLevel, score: number) => void;
+  completeOnboarding: () => void;
   updateStreak: () => void;
   adjustDifficulty: (accuracy: number) => void;
   syncWithServer: () => Promise<void>;
@@ -106,16 +103,15 @@ export const useUserProgressStore = create<UserProgressState>()(
         set({ language });
       },
 
-      // Update reading level and score
-      updateLevel: (level, score) => {
+      // Set difficulty multiplier manually (0.5 to 2.0)
+      setDifficulty: (difficulty) => {
         const { progress } = get();
         if (!progress) return;
 
         set({
           progress: {
             ...progress,
-            currentLevel: level,
-            levelScore: Math.max(0, Math.min(100, score)),
+            difficultyMultiplier: Math.max(0.5, Math.min(2.0, Math.round(difficulty * 100) / 100)),
             updatedAt: new Date().toISOString(),
           },
         });
@@ -211,17 +207,14 @@ export const useUserProgressStore = create<UserProgressState>()(
       },
 
       // Complete onboarding
-      completeOnboarding: (level, score) => {
+      completeOnboarding: () => {
         const { progress } = get();
         if (!progress) return;
 
         set({
           progress: {
             ...progress,
-            currentLevel: level,
-            levelScore: score,
             hasCompletedOnboarding: true,
-            initialAssessmentScore: score,
             updatedAt: new Date().toISOString(),
           },
         });

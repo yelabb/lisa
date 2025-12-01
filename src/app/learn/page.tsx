@@ -119,7 +119,7 @@ export default function LearnPage() {
   const handleStartReading = () => {
     // Save preferences and mark onboarding complete
     setPreferences(selectedThemes, []);
-    markOnboardingComplete('BEGINNER', 50);
+    markOnboardingComplete();
     setOnboardingStep('complete');
   };
 
@@ -136,10 +136,9 @@ export default function LearnPage() {
         : (selectedThemes.length > 0 ? selectedThemes : ['adventure']);
       
       const result = await generateStory.mutateAsync({
-        readingLevel: progress.currentLevel,
+        difficultyMultiplier: progress.difficultyMultiplier,
         themes: userThemes, // Passer TOUS les thèmes
         interests: progress.interests,
-        difficultyMultiplier: progress.difficultyMultiplier,
         language: language || 'fr',
         excludeIds: excludeStoryId ? [excludeStoryId] : [],
       });
@@ -449,35 +448,12 @@ export default function LearnPage() {
         }} 
       />
 
-      {/* Live score indicator - FIXED position at root level */}
-      {!isCompleted && currentScore.total > 0 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="fixed top-4 left-4 z-30"
-        >
-          <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-md border border-gray-100 flex items-center gap-2">
-            <span className="text-lg">
-              {currentScore.correct === currentScore.total ? '⭐' : '📖'}
-            </span>
-            <span className="text-sm font-medium text-gray-700">
-              {currentScore.correct}/{currentScore.total}
-            </span>
-          </div>
-        </motion.div>
-      )}
-
       <div className="w-full max-w-2xl mx-auto flex flex-col flex-1">
         {/* Header - compact et fixe */}
         <div className="text-center py-6 shrink-0">
           <div className="inline-flex items-center gap-2 text-sm text-gray-500 mb-4">
             <Sparkles size={14} className="text-purple-500" />
             <span className="font-medium">Lisa</span>
-            {progress && (
-              <span className="ml-2 px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                {progress.currentLevel.replace('_', ' ')}
-              </span>
-            )}
           </div>
           
           <h1 className="text-xl sm:text-2xl font-medium text-gray-900 mb-3">
