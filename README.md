@@ -1,6 +1,6 @@
 # Lisa - Lecture Simplifiée
 
-Lisa est une application de lecture minimaliste pour enfants, inspirée par le design épuré de Grammarly, Apple et Vercel.
+Lisa est une application de lecture minimaliste pour enfants.
 
 ## ✨ Philosophie
 
