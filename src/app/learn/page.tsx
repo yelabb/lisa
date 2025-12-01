@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
+import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useUserProgressStore, useReadingSessionStore } from '@/stores';
 import { useGenerateStory, useAnswerQuestion, useCompleteStory, useStartSession } from '@/hooks';
 import { WelcomeScreen, LanguageSelect, ThemeSelect, ReadyScreen } from '@/components/onboarding';
+import { SettingsDialog } from '@/components/settings';
 import type { WordHint, StoryQuestion } from '@/types';
 
 // Onboarding steps
@@ -57,6 +58,7 @@ export default function LearnPage() {
   const [showNavigationHint, setShowNavigationHint] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Initialize user on mount
   useEffect(() => {
@@ -361,6 +363,21 @@ export default function LearnPage() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      {/* Settings button (discrete, top-right) */}
+      <button
+        onClick={() => setShowSettings(true)}
+        className="fixed top-4 right-4 w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center transition-all opacity-40 hover:opacity-100 z-30"
+        aria-label={isFrench ? 'Paramètres' : 'Settings'}
+      >
+        <Settings size={16} className="text-gray-500" />
+      </button>
+
+      {/* Settings dialog */}
+      <SettingsDialog 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+      />
+
       <div className="w-full max-w-3xl">
         {/* Header */}
         <div className="text-center mb-12">
