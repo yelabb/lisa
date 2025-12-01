@@ -217,35 +217,48 @@ export default function LearnPage() {
     return Math.max(3000, Math.min(15000, baseTime));
   }, []);
 
+  // Refs to avoid effect re-running
+  const nextItemRef = useRef(nextItem);
+  const handleStoryCompleteRef = useRef(handleStoryComplete);
+  useEffect(() => {
+    nextItemRef.current = nextItem;
+    handleStoryCompleteRef.current = handleStoryComplete;
+  }, [nextItem, handleStoryComplete]);
+
   // Auto-progression timer with progress tracking
   useEffect(() => {
-    if (!story || isPaused || isCompleted) return;
+    if (!story || isPaused || isCompleted) {
+      return;
+    }
     
     const currentItem = story.content[currentIndex];
-    if (!currentItem || currentItem.type === 'question' || selectedAnswer !== null) return;
+    if (!currentItem || currentItem.type === 'question' || selectedAnswer !== null) {
+      return;
+    }
 
     // Calculate reading time based on word count
     const readingTime = calculateReadingTime(currentItem.text);
     setCurrentReadingTime(readingTime);
-    setScrollProgress(0);
-
-    // Progress update interval (60fps)
-    const progressInterval = 16;
-    const progressStep = (progressInterval / readingTime) * 100;
     
+    // Reset progress at start
+    setScrollProgress(0);
+    
+    const startTime = Date.now();
+
+    // Progress update interval (~60fps)
     const progressTimer = setInterval(() => {
-      setScrollProgress(prev => {
-        const next = prev + progressStep;
-        return next >= 100 ? 100 : next;
-      });
-    }, progressInterval);
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / readingTime) * 100, 100);
+      setScrollProgress(progress);
+    }, 16);
 
     const timer = setTimeout(() => {
+      clearInterval(progressTimer);
       setScrollProgress(0);
       if (currentIndex < story.content.length - 1) {
-        nextItem();
+        nextItemRef.current();
       } else {
-        handleStoryComplete();
+        handleStoryCompleteRef.current();
       }
     }, readingTime);
 
@@ -253,7 +266,7 @@ export default function LearnPage() {
       clearTimeout(timer);
       clearInterval(progressTimer);
     };
-  }, [currentIndex, isPaused, story, selectedAnswer, isCompleted, nextItem, handleStoryComplete, calculateReadingTime]);
+  }, [currentIndex, isPaused, story, selectedAnswer, isCompleted, calculateReadingTime]);
 
   // Hide navigation hint after 5 seconds
   useEffect(() => {
@@ -880,47 +893,51 @@ export default function LearnPage() {
             </motion.button>
 
             {/* Pause button with circular progress indicator */}
-            <div className="relative">
+            <div className="relative w-14 h-14">
               {/* Circular progress ring */}
               {!isPaused && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
                 <svg 
-                  className="absolute -inset-1 w-16 h-16 -rotate-90"
-                  viewBox="0 0 64 64"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] pointer-events-none"
+                  viewBox="0 0 68 68"
                 >
                   {/* Background ring */}
                   <circle
-                    cx="32"
-                    cy="32"
-                    r="29"
+                    cx="34"
+                    cy="34"
+                    r="32"
                     fill="none"
-                    stroke="rgba(168, 85, 247, 0.2)"
+                    stroke="rgba(168, 85, 247, 0.25)"
                     strokeWidth="3"
                   />
                   {/* Progress ring */}
                   <circle
-                    cx="32"
-                    cy="32"
-                    r="29"
+                    cx="34"
+                    cy="34"
+                    r="32"
                     fill="none"
                     stroke={scrollProgress > 80 ? "#ef4444" : scrollProgress > 60 ? "#f59e0b" : "#a855f7"}
                     strokeWidth="3"
                     strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 29}`}
-                    strokeDashoffset={`${2 * Math.PI * 29 * (1 - scrollProgress / 100)}`}
-                    className="transition-all duration-100"
+                    strokeDasharray={2 * Math.PI * 32}
+                    strokeDashoffset={2 * Math.PI * 32 * (1 - scrollProgress / 100)}
+                    style={{ 
+                      transition: 'stroke-dashoffset 0.1s linear, stroke 0.3s ease',
+                      transform: 'rotate(-90deg)',
+                      transformOrigin: 'center'
+                    }}
                   />
                 </svg>
               )}
               {/* Pulsing glow when near end */}
               {!isPaused && scrollProgress > 80 && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
                 <motion.div
-                  className="absolute -inset-2 rounded-full bg-red-400/30"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72px] h-[72px] rounded-full bg-red-400/30 pointer-events-none"
                   animate={{ 
                     scale: [1, 1.15, 1],
-                    opacity: [0.5, 0.8, 0.5]
+                    opacity: [0.4, 0.7, 0.4]
                   }}
                   transition={{ 
-                    duration: 0.6,
+                    duration: 0.5,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
@@ -931,7 +948,7 @@ export default function LearnPage() {
                 disabled={selectedAnswer !== null}
                 whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
                 whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
-                className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                className={`absolute inset-0 rounded-full flex items-center justify-center transition-all ${
                   selectedAnswer === null 
                     ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl' 
                     : 'bg-purple-300 text-white shadow-md cursor-not-allowed'
