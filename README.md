@@ -1,74 +1,45 @@
-# Lisa - AI-Powered Reading Assistant for Children
+# Lisa - Lecture Simplifiée
 
-Lisa is an AI-powered learning platform that helps children improve their reading comprehension and summarization skills through personalized story generation and adaptive questioning.
+Lisa est une application de lecture minimaliste pour enfants, inspirée par le design épuré de Grammarly, Apple et Vercel.
 
-## 🌟 Features
+## ✨ Philosophie
 
-- **AI Story Generation**: Groq-powered stories tailored to reading level and interests
-- **Adaptive Questions**: Comprehension, vocabulary, and summarization questions
-- **Progress Tracking**: Skill assessment and automatic difficulty adjustment
-- **Offline-First**: localStorage-based user data (no authentication required)
-- **Child-Friendly UI**: Engaging, accessible interface with progress visualization
+- **Un seul écran** - Expérience focalisée sans distraction
+- **Lecture naturelle** - Les histoires se déroulent progressivement
+- **Questions intégrées** - Posées naturellement dans le flux de lecture
+- **Hints contextuels** - Définitions des mots au clic
+- **Pas de jugement** - Analyse en arrière-plan, feedback positif uniquement
+- **Design minimaliste** - Interface épurée, style Apple/Vercel
 
 ## 🛠️ Tech Stack
 
-- **Next.js 16** (App Router)
+- **Next.js 15** (App Router)
 - **TypeScript**
 - **Tailwind CSS v4**
-- **Prisma ORM** with Neon PostgreSQL
-- **Groq AI API** for content generation
-- **Zustand** for state management
-- **React Query** for data fetching
+- **Framer Motion** pour les animations fluides
+- **Lucide React** pour les icônes minimalistes
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 20+ installed
-- A Neon PostgreSQL database
-- A Groq API key ([get one here](https://console.groq.com))
+## 🚀 Démarrage Rapide
 
 ### Installation
 
-1. Clone the repository:
+1. Cloner le dépôt:
 ```bash
 git clone <repository-url>
 cd lisa-next
 ```
 
-2. Install dependencies:
+2. Installer les dépendances:
 ```bash
-npm install
+yarn install
 ```
 
-3. Set up environment variables:
+3. Lancer le serveur de développement:
 ```bash
-cp .env.example .env.local
+yarn dev
 ```
 
-Edit `.env.local` and add your credentials:
-```env
-DATABASE_URL="your-neon-postgres-connection-string"
-GROQ_API_KEY="your-groq-api-key"
-NODE_ENV="development"
-```
-
-4. Run database migrations:
-```bash
-npx prisma migrate dev
-```
-
-5. Generate Prisma Client:
-```bash
-npx prisma generate
-```
-
-6. Start the development server:
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to see the application.
+Ouvrir [http://localhost:3000](http://localhost:3000) pour voir l'application.
 
 ## 📁 Project Structure
 
