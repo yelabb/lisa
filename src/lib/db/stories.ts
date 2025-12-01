@@ -18,14 +18,11 @@ export async function createStoryWithQuestions(params: {
     0
   );
 
-  // Build the full content with questions interspersed
-  const content = buildStoryContent(generatedStory, questions);
-
-  // Create story in database
+  // Create story in database first (without content, to get question IDs)
   const dbStory = await prisma.story.create({
     data: {
       title: generatedStory.title,
-      content: JSON.stringify(content),
+      content: '[]', // Temporary, will update after we have question IDs
       summary: generatedStory.paragraphs[0] || null,
       readingLevel: readingLevel as PrismaReadingLevel,
       wordCount,
@@ -45,8 +42,19 @@ export async function createStoryWithQuestions(params: {
       },
     },
     include: {
-      questions: true,
+      questions: {
+        orderBy: { orderIndex: 'asc' },
+      },
     },
+  });
+
+  // Build the full content with actual database question IDs
+  const content = buildStoryContent(generatedStory, questions, dbStory.questions);
+
+  // Update the story with the correct content
+  await prisma.story.update({
+    where: { id: dbStory.id },
+    data: { content: JSON.stringify(content) },
   });
 
   // Return formatted story
@@ -167,15 +175,26 @@ export async function getRandomStories(params: {
 
 /**
  * Build story content with questions interspersed at appropriate positions
+ * Uses actual database question IDs for proper foreign key relationships
  */
 function buildStoryContent(
   story: GeneratedStory,
-  questions: GeneratedQuestion[]
+  generatedQuestions: GeneratedQuestion[],
+  dbQuestions: Array<{ id: string; orderIndex: number }>
 ): StoryContent[] {
   const content: StoryContent[] = [];
   
+  // Create a map of orderIndex to actual database question ID
+  const questionIdMap = new Map<number, string>();
+  dbQuestions.forEach(q => {
+    questionIdMap.set(q.orderIndex, q.id);
+  });
+  
   // Sort questions by afterParagraph
-  const sortedQuestions = [...questions].sort((a, b) => a.afterParagraph - b.afterParagraph);
+  const sortedQuestions = generatedQuestions.map((q, index) => ({
+    ...q,
+    originalIndex: index,
+  })).sort((a, b) => a.afterParagraph - b.afterParagraph);
   
   // Track which question to insert next
   let questionIndex = 0;
@@ -193,9 +212,12 @@ function buildStoryContent(
       sortedQuestions[questionIndex].afterParagraph <= paragraphIndex
     ) {
       const q = sortedQuestions[questionIndex];
+      // Use the actual database question ID
+      const dbQuestionId = questionIdMap.get(q.originalIndex);
+      
       content.push({
         type: 'question',
-        id: `q-${paragraphIndex}-${questionIndex}`,
+        id: dbQuestionId || `q-${paragraphIndex}-${questionIndex}`,
         text: q.questionText,
         questionType: q.type,
         options: q.options,
@@ -210,9 +232,12 @@ function buildStoryContent(
   // Add any remaining questions at the end
   while (questionIndex < sortedQuestions.length) {
     const q = sortedQuestions[questionIndex];
+    // Use the actual database question ID
+    const dbQuestionId = questionIdMap.get(q.originalIndex);
+    
     content.push({
       type: 'question',
-      id: `q-end-${questionIndex}`,
+      id: dbQuestionId || `q-end-${questionIndex}`,
       text: q.questionText,
       questionType: q.type,
       options: q.options,

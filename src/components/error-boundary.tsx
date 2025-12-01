@@ -52,9 +52,9 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <LisaCompanion
-              mood="sad"
-              message="I'm sorry! Something unexpected happened. Let's try again together!"
-              size="lg"
+              state="struggle"
+              message={{ text: "I'm sorry! Something unexpected happened. Let's try again together!" }}
+              size="large"
             />
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
