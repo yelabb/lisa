@@ -59,7 +59,8 @@ export default function LearnPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [answerFeedback, setAnswerFeedback] = useState<{
+  // Feedback intégré comme une étape de l'histoire
+  const [showFeedbackStep, setShowFeedbackStep] = useState<{
     isCorrect: boolean;
     explanation: string;
   } | null>(null);
@@ -254,12 +255,6 @@ export default function LearnPage() {
     setSelectedAnswer(index);
     const isCorrect = index === currentItem.correctIndex;
     
-    // Show feedback popup
-    setAnswerFeedback({
-      isCorrect,
-      explanation: currentItem.explanation,
-    });
-    
     // Record in store
     recordAnswer(
       currentItem.id,
@@ -278,16 +273,25 @@ export default function LearnPage() {
       sessionId: sessionId || undefined,
     });
 
-    // Continue after delay
+    // Après un court délai, afficher le feedback comme une étape
     setTimeout(() => {
       setSelectedAnswer(null);
-      setAnswerFeedback(null);
-      if (currentIndex < story.content.length - 1) {
-        nextItem();
-      } else {
-        handleStoryComplete();
-      }
-    }, 2500);
+      setShowFeedbackStep({
+        isCorrect,
+        explanation: currentItem.explanation,
+      });
+    }, 1500);
+  };
+
+  // Continuer après le feedback
+  const handleContinueAfterFeedback = () => {
+    if (!story) return;
+    setShowFeedbackStep(null);
+    if (currentIndex < story.content.length - 1) {
+      nextItem();
+    } else {
+      handleStoryComplete();
+    }
   };
 
   // Handle next story
@@ -440,79 +444,6 @@ export default function LearnPage() {
         }} 
       />
 
-      {/* Answer feedback popup - FIXED position at root level */}
-      <AnimatePresence>
-        {answerFeedback && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`fixed bottom-6 left-1/2 -translate-x-1/2 max-w-sm w-[calc(100%-2rem)] rounded-2xl shadow-2xl p-5 z-100 border-2 ${
-              answerFeedback.isCorrect 
-                ? 'bg-green-50 border-green-200' 
-                : 'bg-amber-50 border-amber-200'
-            }`}
-          >
-            <div className="flex items-start gap-4">
-              {/* Icon with animation */}
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 400, damping: 15, delay: 0.1 }}
-                className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-                  answerFeedback.isCorrect 
-                    ? 'bg-green-500' 
-                    : 'bg-amber-500'
-                }`}
-              >
-                {answerFeedback.isCorrect ? (
-                  <Check size={24} className="text-white" />
-                ) : (
-                  <X size={24} className="text-white" />
-                )}
-              </motion.div>
-              
-              <div className="flex-1 min-w-0">
-                <motion.p 
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className={`font-semibold text-base mb-1 ${
-                    answerFeedback.isCorrect ? 'text-green-800' : 'text-amber-800'
-                  }`}
-                >
-                  {answerFeedback.isCorrect 
-                    ? (isFrench ? 'Bravo ! 🎉' : 'Well done! 🎉')
-                    : (isFrench ? 'Pas tout à fait...' : 'Not quite...')
-                  }
-                </motion.p>
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.25 }}
-                  className={`text-sm leading-relaxed ${
-                    answerFeedback.isCorrect ? 'text-green-700' : 'text-amber-700'
-                  }`}
-                >
-                  {answerFeedback.explanation}
-                </motion.p>
-              </div>
-            </div>
-            
-            {/* Progress bar for auto-dismiss */}
-            <motion.div 
-              className={`absolute bottom-0 left-0 h-1 rounded-b-2xl ${
-                answerFeedback.isCorrect ? 'bg-green-400' : 'bg-amber-400'
-              }`}
-              initial={{ width: '100%' }}
-              animate={{ width: '0%' }}
-              transition={{ duration: 2.5, ease: 'linear' }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Live score indicator - FIXED position at root level */}
       {!isCompleted && currentScore.total > 0 && (
         <motion.div
@@ -569,7 +500,7 @@ export default function LearnPage() {
         {/* Main content area - hauteur fixe pour éviter les sauts */}
         <div className="relative flex-1 flex min-h-[350px] sm:min-h-[400px]">
           {/* Left click zone */}
-          {!isQuestion && !isCompleted && currentIndex > 0 && selectedAnswer === null && (
+          {!isQuestion && !isCompleted && !showFeedbackStep && currentIndex > 0 && selectedAnswer === null && (
             <button
               onClick={previousItem}
               className="absolute left-0 top-0 bottom-0 w-1/4 hover:bg-gray-50/50 transition-colors cursor-pointer z-10 group"
@@ -582,7 +513,7 @@ export default function LearnPage() {
           )}
 
           {/* Right click zone */}
-          {!isQuestion && !isCompleted && currentIndex < story.content.length - 1 && selectedAnswer === null && (
+          {!isQuestion && !isCompleted && !showFeedbackStep && currentIndex < story.content.length - 1 && selectedAnswer === null && (
             <button
               onClick={nextItem}
               className="absolute right-0 top-0 bottom-0 w-1/4 hover:bg-gray-50/50 transition-colors cursor-pointer z-10 group"
@@ -615,7 +546,7 @@ export default function LearnPage() {
                 )}
 
                 {/* Question */}
-                {currentItem && currentItem.type === 'question' && !isCompleted && (
+                {currentItem && currentItem.type === 'question' && !isCompleted && !showFeedbackStep && (
                   <motion.div
                     key={`question-${currentIndex}`}
                     initial={{ opacity: 0, scale: 0.98 }}
@@ -677,6 +608,67 @@ export default function LearnPage() {
                         );
                       })}
                     </div>
+                  </motion.div>
+                )}
+
+                {/* Feedback step - intégré comme une vraie étape de l'histoire */}
+                {showFeedbackStep && !isCompleted && (
+                  <motion.div
+                    key="feedback-step"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="text-center space-y-8"
+                  >
+                    {/* Emoji animé */}
+                    <motion.div
+                      initial={{ scale: 0, rotate: -20 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.2 }}
+                      className="text-6xl sm:text-7xl"
+                    >
+                      {showFeedbackStep.isCorrect ? '🎉' : '💪'}
+                    </motion.div>
+
+                    {/* Message encourageant */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="space-y-4"
+                    >
+                      <p className={`text-2xl sm:text-3xl font-medium ${
+                        showFeedbackStep.isCorrect ? 'text-green-600' : 'text-amber-600'
+                      }`}>
+                        {showFeedbackStep.isCorrect 
+                          ? (isFrench ? 'Super, tu as trouvé !' : 'Awesome, you got it!')
+                          : (isFrench ? 'Pas grave, on apprend !' : 'No worries, we learn!')
+                        }
+                      </p>
+                      
+                      <p className="text-lg sm:text-xl text-gray-700 leading-relaxed max-w-md mx-auto">
+                        {showFeedbackStep.explanation}
+                      </p>
+                    </motion.div>
+
+                    {/* Bouton pour continuer */}
+                    <motion.button
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleContinueAfterFeedback}
+                      className={`inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-colors shadow-lg hover:shadow-xl ${
+                        showFeedbackStep.isCorrect 
+                          ? 'bg-green-500 hover:bg-green-600 text-white' 
+                          : 'bg-amber-500 hover:bg-amber-600 text-white'
+                      }`}
+                    >
+                      {isFrench ? 'Continuer' : 'Continue'}
+                      <ChevronRight size={20} />
+                    </motion.button>
                   </motion.div>
                 )}
 
@@ -829,7 +821,7 @@ export default function LearnPage() {
         </AnimatePresence>
 
         {/* Progress indicator - plus visible */}
-        {!isCompleted && (
+        {!isCompleted && !showFeedbackStep && (
           <div className="mt-8 sm:mt-12 flex justify-center gap-2 shrink-0">
             {story.content.map((item, index) => (
               <div
@@ -849,7 +841,7 @@ export default function LearnPage() {
         )}
 
         {/* Navigation controls - toujours visibles pour éviter le saut de page */}
-        {!isCompleted && currentIndex < story.content.length && (
+        {!isCompleted && !showFeedbackStep && currentIndex < story.content.length && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

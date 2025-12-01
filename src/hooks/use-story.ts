@@ -9,7 +9,7 @@ interface GenerateStoryParams {
   difficultyMultiplier?: number;
   language?: string;
   excludeIds?: string[];
-  forceNew?: boolean;
+  useCacheOnly?: boolean; // Utiliser uniquement le cache (mode hors-ligne)
 }
 
 // Generate a new story
