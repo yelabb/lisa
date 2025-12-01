@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X, Shuffle } from 'lucide-react';
+import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X, Shuffle, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 
-import { useUserProgressStore, useReadingSessionStore } from '@/stores';
+import { useUserProgressStore, useReadingSessionStore, useReadingSettingsStore, getThemeStyles, getFontClass } from '@/stores';
 import { useGenerateStory, useAnswerQuestion, useCompleteStory, useStartSession } from '@/hooks';
 import { WelcomeScreen, LanguageSelect, ThemeSelect, ReadyScreen } from '@/components/onboarding';
 import { SettingsDialog } from '@/components/settings';
+import { ReadingControls } from '@/components/reading';
 import type { StoryQuestion } from '@/types';
 
 // Types for dynamic word explanations
@@ -57,6 +58,21 @@ export default function LearnPage() {
     reset: resetSession,
   } = useReadingSessionStore();
 
+  // Reading settings store
+  const { 
+    theme: readingTheme, 
+    fontFamily, 
+    fontSize, 
+    lineHeight,
+    readingWidth,
+    autoProgress,
+    readingSpeed,
+  } = useReadingSettingsStore();
+
+  // Get theme styles
+  const themeStyles = useMemo(() => getThemeStyles(readingTheme), [readingTheme]);
+  const fontClass = useMemo(() => getFontClass(fontFamily), [fontFamily]);
+
   // Onboarding state
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome');
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
@@ -75,6 +91,7 @@ export default function LearnPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showReadingControls, setShowReadingControls] = useState(false);
   // Cache for word explanations to avoid re-fetching
   const wordExplanationsCache = useRef<Map<string, FunWordExplanation>>(new Map());
   // Feedback intégré comme une étape de l'histoire
@@ -237,15 +254,14 @@ export default function LearnPage() {
     );
   }, [story, isCompleted, completeSession, completeStoryMutation, sessionId, setLisaState, tFeedback]);
 
-  // Calculate reading time based on word count
+  // Calculate reading time based on word count and user's reading speed
   const calculateReadingTime = useCallback((text: string) => {
     const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-    // Base: ~150 words per minute for children learning to read
-    // That's about 400ms per word, with a minimum of 3s and maximum of 15s
-    const timePerWord = 400; // milliseconds
-    const baseTime = wordCount * timePerWord;
-    return Math.max(3000, Math.min(15000, baseTime));
-  }, []);
+    // Utiliser la vitesse de lecture configurée par l'utilisateur
+    const msPerWord = 60000 / readingSpeed; // millisecondes par mot
+    const baseTime = wordCount * msPerWord;
+    return Math.max(3000, Math.min(20000, baseTime));
+  }, [readingSpeed]);
 
   // Refs to avoid effect re-running
   const nextItemRef = useRef(nextItem);
@@ -259,7 +275,7 @@ export default function LearnPage() {
 
   // Auto-progression timer with progress tracking
   useEffect(() => {
-    if (!story || isPaused || isCompleted) {
+    if (!story || isPaused || isCompleted || !autoProgress) {
       return;
     }
     
@@ -298,7 +314,7 @@ export default function LearnPage() {
       clearTimeout(timer);
       clearInterval(progressTimer);
     };
-  }, [currentIndex, isPaused, story, selectedAnswer, isCompleted, calculateReadingTime]);
+  }, [currentIndex, isPaused, story, selectedAnswer, isCompleted, calculateReadingTime, autoProgress]);
 
   // Hide navigation hint after 5 seconds
   useEffect(() => {
@@ -451,6 +467,25 @@ export default function LearnPage() {
     // Check if this word is currently being explained
     const isCurrentWord = showHint?.word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ'-]/g, '') === cleanWord;
 
+    // Couleurs adaptées au thème
+    const getWordStyles = () => {
+      if (isCurrentWord) {
+        return readingTheme === 'dark' 
+          ? 'bg-purple-800/50 text-purple-200 scale-105'
+          : 'bg-purple-200 text-purple-800 scale-105';
+      }
+      if (hasVocabularyHint) {
+        return readingTheme === 'dark'
+          ? 'border-b-2 border-dashed border-purple-400/60 hover:border-purple-300 hover:bg-purple-900/30 hover:text-purple-200'
+          : 'border-b-2 border-dashed border-purple-400 hover:border-purple-600 hover:bg-purple-100 hover:text-purple-700';
+      }
+      return readingTheme === 'dark'
+        ? 'hover:bg-white/5 hover:text-purple-300 active:bg-white/10'
+        : readingTheme === 'sepia'
+        ? 'hover:bg-amber-100/50 hover:text-amber-800 active:bg-amber-100'
+        : 'hover:bg-purple-50 hover:text-purple-600 active:bg-purple-100';
+    };
+
     // All words are clickable, but vocabulary words have special styling
     return (
       <motion.span
@@ -459,15 +494,9 @@ export default function LearnPage() {
           e.stopPropagation();
           handleWordClick(word, fullText);
         }}
-        className={`cursor-pointer transition-all duration-200 rounded-md px-1 py-0.5 mx-0.5 inline-block select-none ${
-          isCurrentWord
-            ? 'bg-purple-200 text-purple-800 scale-105 shadow-sm'
-            : hasVocabularyHint
-              ? 'border-b-2 border-dashed border-purple-400 hover:border-purple-600 hover:bg-purple-100 hover:text-purple-700'
-              : 'hover:bg-purple-50 hover:text-purple-600 active:bg-purple-100'
-        }`}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95, backgroundColor: 'rgb(233, 213, 255)' }}
+        className={`cursor-pointer transition-all duration-200 rounded-md px-0.5 py-0.5 inline-block select-none ${getWordStyles()}`}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         layout
       >
         {word}
@@ -513,10 +542,13 @@ export default function LearnPage() {
   const currentItem = story?.content[currentIndex];
   const isQuestion = currentItem?.type === 'question';
 
+  // Calcul du pourcentage de progression dans l'histoire
+  const storyProgress = story ? ((currentIndex + 1) / story.content.length) * 100 : 0;
+
   // Loading state
   if (generateStory.isPending || !story) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-white to-purple-50/30 flex flex-col items-center justify-center p-4">
+      <div className={`min-h-screen ${themeStyles.backgroundGradient} flex flex-col items-center justify-center p-4`}>
         <motion.div
           className="relative"
           animate={{ rotate: 360 }}
@@ -525,7 +557,7 @@ export default function LearnPage() {
           <Sparkles size={56} className="text-purple-500" />
         </motion.div>
         <motion.p 
-          className="mt-6 text-gray-600 font-medium text-lg text-center"
+          className={`mt-6 font-medium text-lg text-center ${themeStyles.textSecondary}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -552,33 +584,73 @@ export default function LearnPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-white to-gray-50/50 flex flex-col p-4 sm:p-6">
-      {/* Top-right buttons: Change story & Settings */}
-      <div className="fixed top-4 right-4 flex items-center gap-2 z-30">
-        {/* Change story button */}
-        <button
-          onClick={handleNextStory}
-          disabled={generateStory.isPending}
-          className="w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-sm hover:shadow-md flex items-center justify-center transition-all opacity-60 hover:opacity-100 backdrop-blur-sm disabled:opacity-40"
-          aria-label={tStory('changeStory')}
-          title={tStory('changeStory')}
-        >
-          {generateStory.isPending ? (
-            <Loader2 size={18} className="text-gray-600 animate-spin" />
-          ) : (
-            <Shuffle size={18} className="text-gray-600" />
-          )}
-        </button>
-
-        {/* Settings button */}
-        <button
-          onClick={() => setShowSettings(true)}
-          className="w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-sm hover:shadow-md flex items-center justify-center transition-all opacity-60 hover:opacity-100 backdrop-blur-sm"
-          aria-label={tSettings('title')}
-        >
-          <Settings size={18} className="text-gray-600" />
-        </button>
+    <div className={`min-h-screen ${themeStyles.backgroundGradient} flex flex-col transition-colors duration-500`}>
+      {/* Barre de progression linéaire en haut - style Kobo */}
+      <div className={`fixed top-0 left-0 right-0 z-40 h-1 ${themeStyles.background}`}>
+        <motion.div 
+          className="h-full bg-gradient-to-r from-purple-400 to-purple-600"
+          initial={{ width: 0 }}
+          animate={{ width: `${storyProgress}%` }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        />
       </div>
+
+      {/* Top bar - Très minimaliste comme Kobo */}
+      <div className="fixed top-1 left-0 right-0 z-30 px-4 py-2">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          {/* Progress indicator discret */}
+          <div className={`text-xs font-medium ${themeStyles.textMuted}`}>
+            {currentIndex + 1} / {story.content.length}
+          </div>
+          
+          {/* Right buttons */}
+          <div className="flex items-center gap-1">
+            {/* Reading controls button */}
+            <button
+              onClick={() => setShowReadingControls(true)}
+              className={`w-9 h-9 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
+                transition-all opacity-60 hover:opacity-100 ${themeStyles.hoverBg}`}
+              aria-label="Confort de lecture"
+              title="Confort de lecture"
+            >
+              <BookOpen size={16} className={themeStyles.textSecondary} />
+            </button>
+
+            {/* Change story button */}
+            <button
+              onClick={handleNextStory}
+              disabled={generateStory.isPending}
+              className={`w-9 h-9 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
+                transition-all opacity-60 hover:opacity-100 disabled:opacity-40 ${themeStyles.hoverBg}`}
+              aria-label={tStory('changeStory')}
+              title={tStory('changeStory')}
+            >
+              {generateStory.isPending ? (
+                <Loader2 size={16} className={`${themeStyles.textSecondary} animate-spin`} />
+              ) : (
+                <Shuffle size={16} className={themeStyles.textSecondary} />
+              )}
+            </button>
+
+            {/* Settings button */}
+            <button
+              onClick={() => setShowSettings(true)}
+              className={`w-9 h-9 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
+                transition-all opacity-60 hover:opacity-100 ${themeStyles.hoverBg}`}
+              aria-label={tSettings('title')}
+            >
+              <Settings size={16} className={themeStyles.textSecondary} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Reading controls panel */}
+      <ReadingControls 
+        isOpen={showReadingControls} 
+        onClose={() => setShowReadingControls(false)}
+        language={language || 'fr'}
+      />
 
       {/* Settings dialog */}
       <SettingsDialog 
@@ -592,47 +664,53 @@ export default function LearnPage() {
         }} 
       />
 
-      <div className="w-full max-w-2xl mx-auto flex flex-col flex-1">
-        {/* Header - compact et fixe */}
-        <div className="text-center py-6 shrink-0">
-          <div className="inline-flex items-center gap-2 text-sm text-gray-500 mb-4">
-            <Sparkles size={14} className="text-purple-500" />
-            <span className="font-medium">Lisa</span>
-          </div>
-          
-          <h1 className="text-xl sm:text-2xl font-medium text-gray-900 mb-3">
+      {/* Zone de lecture principale - Style e-reader */}
+      <div 
+        className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-14 pb-24"
+        style={{ maxWidth: `${readingWidth + 100}px`, margin: '0 auto', width: '100%' }}
+      >
+        {/* Header du livre */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full text-center mb-8 sm:mb-12"
+        >
+          <h1 className={`text-lg sm:text-xl font-medium tracking-wide ${themeStyles.text} ${fontClass}`}>
             {story.title}
           </h1>
-          <div className="w-16 h-0.5 bg-linear-to-r from-transparent via-purple-300 to-transparent mx-auto" />
-        </div>
+          <div className={`mt-3 w-12 h-px mx-auto ${readingTheme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'}`} />
+        </motion.div>
 
-        {/* Navigation hint */}
+        {/* Navigation hint - très discret */}
         <AnimatePresence>
           {showNavigationHint && !isQuestion && !isCompleted && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="text-center mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center mb-6"
             >
-              <p className="text-xs text-gray-500 bg-gray-100 inline-block px-3 py-1.5 rounded-full">
+              <p className={`text-xs ${themeStyles.textMuted} px-3 py-1.5`}>
                 {tStory('navigationHint')}
               </p>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Main content area - hauteur fixe pour éviter les sauts */}
-        <div className="relative flex-1 flex min-h-[350px] sm:min-h-[400px]">
+        {/* Main content area - Zone de lecture avec marges généreuses */}
+        <div 
+          className="relative flex-1 flex w-full"
+          style={{ maxWidth: `${readingWidth}px` }}
+        >
           {/* Left click zone */}
           {!isQuestion && !isCompleted && !showFeedbackStep && currentIndex > 0 && selectedAnswer === null && (
             <button
               onClick={previousItem}
-              className="absolute left-0 top-0 bottom-0 w-1/4 hover:bg-gray-50/50 transition-colors cursor-pointer z-10 group"
+              className={`absolute left-0 top-0 bottom-0 w-1/4 ${themeStyles.hoverBg} transition-colors cursor-pointer z-10 group -ml-8`}
               aria-label="Previous"
             >
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ChevronLeft size={32} className="text-gray-300" />
+              <div className={`absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-40 transition-opacity`}>
+                <ChevronLeft size={24} className={themeStyles.textMuted} />
               </div>
             </button>
           )}
@@ -641,27 +719,27 @@ export default function LearnPage() {
           {!isQuestion && !isCompleted && !showFeedbackStep && currentIndex < story.content.length - 1 && selectedAnswer === null && (
             <button
               onClick={nextItem}
-              className="absolute right-0 top-0 bottom-0 w-1/4 hover:bg-gray-50/50 transition-colors cursor-pointer z-10 group"
+              className={`absolute right-0 top-0 bottom-0 w-1/4 ${themeStyles.hoverBg} transition-colors cursor-pointer z-10 group -mr-8`}
               aria-label="Next"
             >
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ChevronRight size={32} className="text-gray-300" />
+              <div className={`absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-40 transition-opacity`}>
+                <ChevronRight size={24} className={themeStyles.textMuted} />
               </div>
             </button>
           )}
 
           {/* Content */}
-          <div className="flex-1 relative z-20 pointer-events-none flex items-center justify-center px-4 sm:px-12">
+          <div className="flex-1 relative z-20 pointer-events-none flex items-center justify-center">
             <div className="pointer-events-auto w-full">
               <AnimatePresence mode="wait">
-                {/* Text paragraph */}
+                {/* Text paragraph - Style livre/e-reader */}
                 {currentItem && currentItem.type === 'text' && !isCompleted && (
                   <motion.div
                     key={`text-${currentIndex}`}
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -16 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
                     className="text-center"
                   >
                     {/* Word click hint - subtle and auto-hide */}
@@ -670,10 +748,16 @@ export default function LearnPage() {
                         initial={{ opacity: 0, y: -5 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="mb-5"
+                        className="mb-8"
                       >
                         <motion.span 
-                          className="inline-flex items-center gap-2 text-xs bg-purple-50 text-purple-600 px-4 py-2 rounded-full border border-purple-100"
+                          className={`inline-flex items-center gap-2 text-xs px-4 py-2 rounded-full 
+                            ${readingTheme === 'dark' 
+                              ? 'bg-purple-900/30 text-purple-300 border border-purple-700/30' 
+                              : readingTheme === 'sepia'
+                              ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                              : 'bg-purple-50 text-purple-600 border border-purple-100'
+                            }`}
                           animate={{ 
                             scale: [1, 1.02, 1],
                           }}
@@ -693,51 +777,61 @@ export default function LearnPage() {
                         </motion.span>
                       </motion.div>
                     )}
-                    <p className="text-2xl sm:text-3xl leading-relaxed sm:leading-loose text-gray-800 font-normal tracking-wide">
+                    <p 
+                      className={`${themeStyles.text} ${fontClass} text-center leading-relaxed tracking-wide`}
+                      style={{ 
+                        fontSize: `${fontSize}rem`, 
+                        lineHeight: lineHeight,
+                        wordSpacing: '0.05em',
+                      }}
+                    >
                       {currentItem.text.split(' ').map((word, i) => renderWord(word, i, currentItem.text))}
                     </p>
                   </motion.div>
                 )}
 
-                {/* Question */}
+                {/* Question - Style plus sobre */}
                 {currentItem && currentItem.type === 'question' && !isCompleted && !showFeedbackStep && (
                   <motion.div
                     key={`question-${currentIndex}`}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="space-y-6"
+                    className="space-y-8"
                   >
-                    <p className="text-xl sm:text-2xl text-gray-900 font-medium text-center mb-8">
+                    <p 
+                      className={`${themeStyles.text} ${fontClass} text-center`}
+                      style={{ 
+                        fontSize: `${fontSize * 0.9}rem`, 
+                        lineHeight: lineHeight * 0.95,
+                      }}
+                    >
                       {(currentItem as StoryQuestion).text}
                     </p>
 
                     <div className="space-y-3 max-w-lg mx-auto">
                       {(currentItem as StoryQuestion).options.map((option, index) => {
                         const question = currentItem as StoryQuestion;
-                        let bgColor = 'bg-white hover:bg-gray-50';
-                        let borderColor = 'border-gray-200 hover:border-gray-300';
-                        let textColor = 'text-gray-700';
-                        let shadow = 'shadow-sm hover:shadow';
+                        let borderStyle = `border ${themeStyles.border}`;
+                        let bgStyle = themeStyles.cardBg;
+                        let textStyle = themeStyles.text;
                         let icon = null;
 
                         if (selectedAnswer !== null) {
-                          shadow = 'shadow-none';
                           if (index === question.correctIndex) {
-                            bgColor = 'bg-green-50';
-                            borderColor = 'border-green-400';
-                            textColor = 'text-green-800';
-                            icon = <Check size={20} className="text-green-600 shrink-0" />;
+                            bgStyle = readingTheme === 'dark' ? 'bg-green-900/30' : 'bg-green-50';
+                            borderStyle = 'border-2 border-green-400';
+                            textStyle = readingTheme === 'dark' ? 'text-green-300' : 'text-green-800';
+                            icon = <Check size={18} className={readingTheme === 'dark' ? 'text-green-400' : 'text-green-600'} />;
                           } else if (index === selectedAnswer) {
-                            bgColor = 'bg-red-50';
-                            borderColor = 'border-red-400';
-                            textColor = 'text-red-800';
-                            icon = <X size={20} className="text-red-600 shrink-0" />;
+                            bgStyle = readingTheme === 'dark' ? 'bg-red-900/30' : 'bg-red-50';
+                            borderStyle = 'border-2 border-red-400';
+                            textStyle = readingTheme === 'dark' ? 'text-red-300' : 'text-red-800';
+                            icon = <X size={18} className={readingTheme === 'dark' ? 'text-red-400' : 'text-red-600'} />;
                           } else {
-                            bgColor = 'bg-gray-50';
-                            borderColor = 'border-gray-100';
-                            textColor = 'text-gray-400';
+                            bgStyle = readingTheme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50';
+                            textStyle = themeStyles.textMuted;
                           }
                         }
 
@@ -754,9 +848,15 @@ export default function LearnPage() {
                                 : {}
                             }
                             transition={{ duration: 0.3 }}
-                            className={`w-full p-4 sm:p-5 rounded-xl border-2 ${borderColor} ${bgColor} ${textColor} ${shadow} text-left text-base sm:text-lg font-normal transition-all disabled:cursor-default flex items-center justify-between gap-3`}
+                            className={`w-full p-4 sm:p-5 rounded-2xl ${borderStyle} ${bgStyle} ${textStyle} 
+                              text-left font-medium transition-all disabled:cursor-default flex items-center justify-between gap-3
+                              ${selectedAnswer === null ? themeStyles.hoverBg : ''}`}
+                            style={{ 
+                              fontSize: `${fontSize * 0.85}rem`,
+                              fontFamily: fontFamily === 'system' ? 'system-ui, sans-serif' : undefined,
+                            }}
                           >
-                            <span>{option}</span>
+                            <span className={fontClass}>{option}</span>
                             {icon}
                           </motion.button>
                         );
@@ -769,10 +869,10 @@ export default function LearnPage() {
                 {showFeedbackStep && !isCompleted && (
                   <motion.div
                     key="feedback-step"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4 }}
                     className="text-center space-y-8"
                   >
                     {/* Emoji animé */}
@@ -780,7 +880,7 @@ export default function LearnPage() {
                       initial={{ scale: 0, rotate: -20 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.2 }}
-                      className="text-6xl sm:text-7xl"
+                      className="text-5xl sm:text-6xl"
                     >
                       {showFeedbackStep.isCorrect ? '🎉' : '💪'}
                     </motion.div>
@@ -792,8 +892,10 @@ export default function LearnPage() {
                       transition={{ delay: 0.3 }}
                       className="space-y-4"
                     >
-                      <p className={`text-2xl sm:text-3xl font-medium ${
-                        showFeedbackStep.isCorrect ? 'text-green-600' : 'text-amber-600'
+                      <p className={`text-xl sm:text-2xl font-medium ${
+                        showFeedbackStep.isCorrect 
+                          ? readingTheme === 'dark' ? 'text-green-400' : 'text-green-600'
+                          : readingTheme === 'dark' ? 'text-amber-400' : 'text-amber-600'
                       }`}>
                         {showFeedbackStep.isCorrect 
                           ? tFeedback('correct')
@@ -801,7 +903,13 @@ export default function LearnPage() {
                         }
                       </p>
                       
-                      <p className="text-lg sm:text-xl text-gray-700 leading-relaxed max-w-md mx-auto">
+                      <p 
+                        className={`${themeStyles.textSecondary} max-w-md mx-auto ${fontClass}`}
+                        style={{ 
+                          fontSize: `${fontSize * 0.85}rem`,
+                          lineHeight: lineHeight * 0.95,
+                        }}
+                      >
                         {showFeedbackStep.explanation}
                       </p>
                     </motion.div>
@@ -811,17 +919,17 @@ export default function LearnPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5 }}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={handleContinueAfterFeedback}
-                      className={`inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-colors shadow-lg hover:shadow-xl ${
+                      className={`inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-medium transition-colors ${
                         showFeedbackStep.isCorrect 
                           ? 'bg-green-500 hover:bg-green-600 text-white' 
                           : 'bg-amber-500 hover:bg-amber-600 text-white'
                       }`}
                     >
                       {tCommon('continue')}
-                      <ChevronRight size={20} />
+                      <ChevronRight size={18} />
                     </motion.button>
                   </motion.div>
                 )}
@@ -829,14 +937,14 @@ export default function LearnPage() {
                 {/* Story complete */}
                 {isCompleted && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     className="text-center space-y-6"
                   >
                     {/* Animated emoji celebration */}
                     <div className="relative">
                       <motion.div 
-                        className="text-6xl sm:text-7xl"
+                        className="text-5xl sm:text-6xl"
                         initial={{ scale: 0, rotate: -20 }}
                         animate={{ scale: 1, rotate: 0 }}
                         transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
@@ -873,7 +981,7 @@ export default function LearnPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
-                      className="text-xl sm:text-2xl text-gray-800 font-medium"
+                      className={`text-xl sm:text-2xl font-medium ${themeStyles.text} ${fontClass}`}
                     >
                       {currentScore.total > 0 && currentScore.correct / currentScore.total >= 0.8
                         ? tFeedback('amazingWork')
@@ -890,7 +998,11 @@ export default function LearnPage() {
                       className="flex items-center justify-center gap-3 flex-wrap"
                     >
                       <motion.span 
-                        className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full font-semibold text-base flex items-center gap-2"
+                        className={`px-4 py-2 rounded-full font-semibold text-base flex items-center gap-2
+                          ${readingTheme === 'dark' 
+                            ? 'bg-purple-900/40 text-purple-300' 
+                            : 'bg-purple-100 text-purple-700'
+                          }`}
                         whileHover={{ scale: 1.05 }}
                       >
                         <Check size={18} />
@@ -898,7 +1010,11 @@ export default function LearnPage() {
                       </motion.span>
                       {progress && progress.currentStreak > 0 && (
                         <motion.span 
-                          className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-semibold text-base"
+                          className={`px-4 py-2 rounded-full font-semibold text-base
+                            ${readingTheme === 'dark' 
+                              ? 'bg-orange-900/40 text-orange-300' 
+                              : 'bg-orange-100 text-orange-700'
+                            }`}
                           whileHover={{ scale: 1.05 }}
                         >
                           🔥 {progress.currentStreak} {tCommon('days')}
@@ -910,11 +1026,11 @@ export default function LearnPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={handleNextStory}
                       disabled={generateStory.isPending}
-                      className="inline-flex items-center gap-2 px-8 py-4 bg-purple-600 text-white rounded-xl text-base font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 shadow-lg hover:shadow-xl mt-2"
+                      className="inline-flex items-center gap-2 px-8 py-4 bg-purple-600 text-white rounded-2xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 mt-2"
                     >
                       {generateStory.isPending ? (
                         <>
@@ -944,17 +1060,18 @@ export default function LearnPage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => !isLoadingHint && setShowHint(null)}
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
               />
               <motion.div
-                initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className="fixed bottom-8 left-1/2 -translate-x-1/2 max-w-md w-[calc(100%-2rem)] bg-white rounded-3xl shadow-2xl overflow-hidden z-50"
+                exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                className={`fixed bottom-8 left-1/2 -translate-x-1/2 max-w-md w-[calc(100%-2rem)] 
+                  ${themeStyles.cardBg} rounded-3xl shadow-2xl overflow-hidden z-50`}
               >
                 {/* Header with emoji */}
-                <div className="bg-linear-to-r from-purple-500 to-pink-500 px-6 py-4">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
                   <div className="flex items-center justify-center gap-3">
                     <motion.span 
                       className="text-4xl"
@@ -963,7 +1080,7 @@ export default function LearnPage() {
                     >
                       {showHint.emoji}
                     </motion.span>
-                    <h3 className="text-2xl font-bold text-white">
+                    <h3 className={`text-2xl font-bold text-white ${fontClass}`}>
                       {showHint.word}
                     </h3>
                   </div>
@@ -987,13 +1104,13 @@ export default function LearnPage() {
                           />
                         ))}
                       </motion.div>
-                      <p className="text-gray-500 mt-3 text-sm">{tCommon('loadingExplanation')}</p>
+                      <p className={`mt-3 text-sm ${themeStyles.textMuted}`}>{tCommon('loadingExplanation')}</p>
                     </div>
                   ) : (
                     <>
                       {/* Definition */}
                       <div>
-                        <p className="text-gray-800 text-lg leading-relaxed">
+                        <p className={`text-lg leading-relaxed ${themeStyles.text} ${fontClass}`}>
                           {showHint.definition}
                         </p>
                       </div>
@@ -1004,13 +1121,21 @@ export default function LearnPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.2 }}
-                          className="bg-linear-to-r from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-200"
+                          className={`rounded-2xl p-4 border ${
+                            readingTheme === 'dark'
+                              ? 'bg-amber-900/20 border-amber-700/30'
+                              : 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200'
+                          }`}
                         >
                           <div className="flex items-start gap-2">
                             <span className="text-xl">💡</span>
                             <div>
-                              <p className="text-xs font-semibold text-amber-700 mb-1">{tCommon('funFact')}</p>
-                              <p className="text-amber-900 text-sm leading-relaxed">
+                              <p className={`text-xs font-semibold mb-1 ${
+                                readingTheme === 'dark' ? 'text-amber-400' : 'text-amber-700'
+                              }`}>{tCommon('funFact')}</p>
+                              <p className={`text-sm leading-relaxed ${
+                                readingTheme === 'dark' ? 'text-amber-200' : 'text-amber-900'
+                              } ${fontClass}`}>
                                 {showHint.funFact}
                               </p>
                             </div>
@@ -1028,7 +1153,8 @@ export default function LearnPage() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
                     onClick={() => setShowHint(null)}
-                    className="w-full py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-gray-600 font-medium text-sm border-t border-gray-100"
+                    className={`w-full py-4 transition-colors font-medium text-sm border-t 
+                      ${themeStyles.border} ${themeStyles.hoverBg} ${themeStyles.textSecondary}`}
                   >
                     {tCommon('close')} ✨
                   </motion.button>
@@ -1037,42 +1163,32 @@ export default function LearnPage() {
             </>
           )}
         </AnimatePresence>
-
-        {/* Spacer pour le footer fixe */}
-        {!isCompleted && !showFeedbackStep && (
-          <div className="h-32 sm:h-36 shrink-0" />
-        )}
       </div>
 
-      {/* Footer fixe - Navigation controls */}
+      {/* Footer minimaliste - Navigation controls */}
       {!isCompleted && !showFeedbackStep && currentIndex < story.content.length && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="fixed bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-white via-white to-white/80 backdrop-blur-sm border-t border-gray-100"
+          className={`fixed bottom-0 left-0 right-0 z-30 ${themeStyles.overlayBg} backdrop-blur-sm border-t ${themeStyles.border}`}
         >
-          <div className="w-full max-w-2xl mx-auto px-4 py-4">
-            {/* Progress indicator */}
-            <div className="flex justify-center gap-2 mb-4">
-              {story.content.map((item, index) => (
-                <div
-                  key={index}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    item.type === 'question' ? 'w-6' : 'w-10'
-                  } ${
-                    index < currentIndex 
-                      ? 'bg-purple-400' 
-                      : index === currentIndex 
-                        ? 'bg-purple-500 scale-y-125' 
-                        : 'bg-gray-200'
+          <div className="w-full max-w-2xl mx-auto px-4 py-3">
+            {/* Indicateur de progression du paragraphe actuel - Barre linéaire */}
+            {!isQuestion && autoProgress && selectedAnswer === null && (
+              <div className={`h-1 rounded-full mb-3 overflow-hidden ${readingTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                <motion.div 
+                  className={`h-full rounded-full ${
+                    scrollProgress > 80 ? 'bg-red-400' : scrollProgress > 60 ? 'bg-amber-400' : 'bg-purple-400'
                   }`}
+                  animate={{ width: `${scrollProgress}%` }}
+                  transition={{ duration: 0.1, ease: 'linear' }}
                 />
-              ))}
-            </div>
+              </div>
+            )}
 
-            {/* Navigation buttons */}
-            <div className={`flex items-center justify-center gap-4 transition-opacity ${
+            {/* Navigation buttons - Plus compacts */}
+            <div className={`flex items-center justify-center gap-6 transition-opacity ${
               selectedAnswer !== null ? 'opacity-40 pointer-events-none' : 'opacity-100'
             }`}>
               <motion.button
@@ -1080,93 +1196,42 @@ export default function LearnPage() {
                 disabled={currentIndex === 0 || selectedAnswer !== null}
                 whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.05 : 1 }}
                 whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.95 : 1 }}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                   currentIndex > 0 && selectedAnswer === null
-                    ? 'bg-white hover:bg-gray-50 text-gray-700 shadow-md hover:shadow-lg border border-gray-200'
-                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                    ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
+                    : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
                 }`}
               >
-                <ChevronLeft size={22} />
+                <ChevronLeft size={20} />
               </motion.button>
 
-              {/* Pause button with circular progress indicator */}
-              <div className="relative w-14 h-14">
-                {/* Circular progress ring */}
-                {!isPaused && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
-                  <svg 
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] pointer-events-none"
-                    viewBox="0 0 68 68"
-                  >
-                    {/* Background ring */}
-                    <circle
-                      cx="34"
-                      cy="34"
-                      r="32"
-                      fill="none"
-                      stroke="rgba(168, 85, 247, 0.25)"
-                      strokeWidth="3"
-                    />
-                    {/* Progress ring */}
-                    <circle
-                      cx="34"
-                      cy="34"
-                      r="32"
-                      fill="none"
-                      stroke={scrollProgress > 80 ? "#ef4444" : scrollProgress > 60 ? "#f59e0b" : "#a855f7"}
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeDasharray={2 * Math.PI * 32}
-                      strokeDashoffset={2 * Math.PI * 32 * (1 - scrollProgress / 100)}
-                      style={{ 
-                        transition: 'stroke-dashoffset 0.1s linear, stroke 0.3s ease',
-                        transform: 'rotate(-90deg)',
-                        transformOrigin: 'center'
-                      }}
-                    />
-                  </svg>
-                )}
-                {/* Pulsing glow when near end */}
-                {!isPaused && scrollProgress > 80 && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
-                  <motion.div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72px] h-[72px] rounded-full bg-red-400/30 pointer-events-none"
-                    animate={{ 
-                      scale: [1, 1.15, 1],
-                      opacity: [0.4, 0.7, 0.4]
-                    }}
-                    transition={{ 
-                      duration: 0.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  />
-                )}
-                <motion.button
-                  onClick={togglePause}
-                  disabled={selectedAnswer !== null}
-                  whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
-                  whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
-                  className={`absolute inset-0 rounded-full flex items-center justify-center transition-all ${
-                    selectedAnswer === null 
-                      ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl' 
-                      : 'bg-purple-300 text-white shadow-md cursor-not-allowed'
-                  }`}
-                >
-                  {isPaused ? <Play size={24} /> : <Pause size={24} />}
-                </motion.button>
-              </div>
+              {/* Pause button - Plus discret */}
+              <motion.button
+                onClick={togglePause}
+                disabled={selectedAnswer !== null}
+                whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
+                whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                  selectedAnswer === null 
+                    ? 'bg-purple-500 hover:bg-purple-600 text-white' 
+                    : 'bg-purple-300 text-white cursor-not-allowed'
+                }`}
+              >
+                {isPaused ? <Play size={20} /> : <Pause size={20} />}
+              </motion.button>
 
               <motion.button
                 onClick={nextItem}
                 disabled={currentIndex >= story.content.length - 1 || selectedAnswer !== null}
                 whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.05 : 1 }}
                 whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.95 : 1 }}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                   currentIndex < story.content.length - 1 && selectedAnswer === null
-                    ? 'bg-white hover:bg-gray-50 text-gray-700 shadow-md hover:shadow-lg border border-gray-200'
-                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                    ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
+                    : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
                 }`}
               >
-                <ChevronRight size={22} />
+                <ChevronRight size={20} />
               </motion.button>
             </div>
           </div>
