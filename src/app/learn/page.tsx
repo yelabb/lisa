@@ -117,12 +117,12 @@ export default function LearnPage() {
   };
 
   // Load story when user is ready
-  const loadNewStory = useCallback(async (excludeStoryId?: string, forceNew: boolean = false) => {
+  const loadNewStory = useCallback(async (excludeStoryId?: string) => {
     if (!progress) return;
 
     setLisaState('thinking', language === 'fr' 
-      ? 'Je cherche une belle histoire pour toi...' 
-      : 'Finding a great story for you...');
+      ? 'Je crée une nouvelle histoire pour toi...' 
+      : 'Creating a new story for you...');
     
     try {
       // Utiliser tous les thèmes préférés de l'utilisateur
@@ -137,12 +137,12 @@ export default function LearnPage() {
         difficultyMultiplier: progress.difficultyMultiplier,
         language: language || 'fr',
         excludeIds: excludeStoryId ? [excludeStoryId] : [],
-        forceNew,
       });
 
       setStory(result.story);
       setIsCompleted(false);
       setSelectedAnswer(null);
+      setShowFeedbackStep(null);
 
       // Start session
       const session = await startSessionMutation.mutateAsync(result.story.id);
@@ -154,9 +154,10 @@ export default function LearnPage() {
         : 'Let\'s read together! 📖');
       
       if (result.cached) {
+        // Indique que c'est une histoire du cache (fallback car génération échouée)
         toast.info(language === 'fr' 
-          ? 'On continue avec ton histoire sauvegardée' 
-          : 'Continuing with a saved story');
+          ? 'Connexion difficile, voici une histoire sauvegardée' 
+          : 'Connection issue, here\'s a saved story');
       }
     } catch (error) {
       console.error('Failed to load story:', error);
@@ -300,8 +301,9 @@ export default function LearnPage() {
     resetSession();
     setSessionId(null);
     setIsCompleted(false);
+    setShowFeedbackStep(null);
     hasTriggeredLoadRef.current = false;
-    loadNewStory(currentStoryId, true); // forceNew = true pour générer une nouvelle histoire
+    loadNewStory(currentStoryId); // Toujours générer une nouvelle histoire
   };
 
   // Render word with possible hint

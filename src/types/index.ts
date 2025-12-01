@@ -149,12 +149,13 @@ export interface GenerateStoryRequest {
   difficultyMultiplier?: number;
   language?: string;
   excludeIds?: string[];
-  forceNew?: boolean;
+  useCacheOnly?: boolean; // Utiliser uniquement le cache (mode hors-ligne)
 }
 
 export interface GenerateStoryResponse {
   story: Story;
   cached: boolean;
+  fallback?: boolean; // Indique que le cache a été utilisé car la génération a échoué
 }
 
 // Onboarding Types

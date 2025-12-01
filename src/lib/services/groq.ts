@@ -16,6 +16,23 @@ const groq = new Groq({
 const MODEL = 'llama-3.3-70b-versatile';
 
 /**
+ * Choisir un thème aléatoire parmi les préférences de l'utilisateur
+ */
+function pickRandomTheme(themes: string[]): string {
+  if (themes.length === 0) return 'adventure';
+  return themes[Math.floor(Math.random() * themes.length)];
+}
+
+/**
+ * Générer un seed unique pour garantir des histoires différentes
+ */
+function generateStorySeed(): string {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 10);
+  return `${timestamp}-${random}`;
+}
+
+/**
  * Generate a story tailored to the user's reading level and interests
  */
 export async function generateStory(params: {
@@ -41,55 +58,73 @@ export async function generateStory(params: {
     (minWords + maxWords) / 2 * difficultyMultiplier
   );
 
-  const interestsContext = interests.length > 0
-    ? `The child is interested in: ${interests.join(', ')}.`
-    : '';
-
-  // Combiner tous les thèmes en une instruction claire
-  const themesDescription = themes.length > 1
-    ? `Combine these themes creatively: ${themes.join(', ')}. The story should blend elements from ALL these themes together.`
-    : `Theme: ${themes[0]}`;
-
+  // CHOISIR UN SEUL THÈME AU HASARD
+  const chosenTheme = pickRandomTheme(themes);
+  
+  // Générer un seed unique pour cette histoire
+  const storySeed = generateStorySeed();
+  
   const isFrench = language === 'fr';
-  const languageInstruction = isFrench 
-    ? 'Write the story in FRENCH (français). Use simple, clear French appropriate for children learning to read.'
-    : 'Write the story in ENGLISH. Use simple, clear English appropriate for children learning to read.';
 
-  const prompt = `You are a children's story writer creating an engaging, age-appropriate story.
+  // Contexte des intérêts (un seul au hasard si plusieurs)
+  const randomInterest = interests.length > 0 
+    ? interests[Math.floor(Math.random() * interests.length)]
+    : null;
 
-Target Audience: ${levelInfo.description} (ages ${levelInfo.ageRange})
-Reading Level: ${readingLevel}
-${themesDescription}
-${interestsContext}
+  // PROMPT EN DEUX PHASES: D'abord générer les éléments créatifs, puis l'histoire
+  const prompt = `You are an award-winning children's book author known for creating unique, surprising, and delightful stories.
 
-IMPORTANT: ${languageInstruction}
+STORY SEED: ${storySeed} (use this to ensure uniqueness)
 
-Requirements:
-- Write exactly ${targetWords} words (between ${minWords}-${maxWords})
-- Use vocabulary appropriate for ${levelInfo.description}
-- Keep sentences short and clear
-- Include 3-5 vocabulary words that might be new but learnable
-- Make the story engaging with a clear beginning, middle, and end
-- The story should be positive and encouraging
+YOUR MISSION: Create a completely ORIGINAL and UNEXPECTED story that a 10-year-old will love.
 
-Respond with ONLY valid JSON in this exact format (no markdown, no code blocks):
+STEP 1 - INVENT UNIQUE ELEMENTS (be wildly creative):
+First, invent these elements - make them ORIGINAL, don't use common tropes:
+- A unique main character (NOT a princess, knight, or typical hero - think outside the box!)
+- An unusual setting (NOT a castle, forest, or school - surprise me!)
+- A creative problem or quest (NOT finding treasure or saving someone - be inventive!)
+- A surprising twist (something the reader won't expect)
+
+STEP 2 - WRITE THE STORY:
+Theme to incorporate: ${chosenTheme}
+${randomInterest ? `Child's interest to weave in: ${randomInterest}` : ''}
+Reading level: ${readingLevel} (${levelInfo.description}, ages ${levelInfo.ageRange})
+Target length: ${targetWords} words (${minWords}-${maxWords} range)
+Language: ${isFrench ? 'FRENCH (français)' : 'ENGLISH'}
+
+STYLE REQUIREMENTS for a ${levelInfo.ageRange} year old:
+${readingLevel === 'BEGINNER' || readingLevel === 'EARLY' ? 
+  '- Very short sentences (5-8 words)\n- Simple vocabulary\n- Repetition for reinforcement\n- 2-3 new words maximum' :
+  readingLevel === 'DEVELOPING' || readingLevel === 'INTERMEDIATE' ?
+  '- Mix of short and medium sentences\n- Some descriptive language\n- 3-4 new vocabulary words\n- Simple dialogue' :
+  '- Varied sentence structure\n- Rich descriptive language\n- 4-5 challenging vocabulary words\n- Complex dialogue and emotions'}
+
+CREATIVE MANDATES:
+1. START with action or dialogue - NO "Once upon a time" or "Il était une fois"
+2. Include at least one FUNNY moment (kids love to laugh!)
+3. Add sensory details - what does it smell/sound/feel like?
+4. The hero must ACTIVELY solve the problem (not get rescued)
+5. End with something MEMORABLE - a joke, a surprise, or a touching moment
+6. Make it feel FRESH - avoid clichés!
+
+Respond with ONLY this JSON (no markdown, no code blocks):
 {
-  "title": "${isFrench ? 'Titre de l\'histoire ici' : 'Story Title Here'}",
+  "title": "${isFrench ? 'Titre accrocheur et original' : 'Catchy original title'}",
   "paragraphs": [
-    "${isFrench ? 'Premier paragraphe de l\'histoire.' : 'First paragraph of the story.'}",
-    "${isFrench ? 'Deuxième paragraphe...' : 'Second paragraph of the story.'}",
-    "${isFrench ? 'Suite de l\'histoire...' : 'Third paragraph continues...'}",
-    "${isFrench ? 'Quatrième paragraphe...' : 'Fourth paragraph...'}",
-    "${isFrench ? 'Paragraphe final avec conclusion.' : 'Final paragraph with conclusion.'}"
+    "${isFrench ? 'Accroche immédiate - action ou dialogue!' : 'Immediate hook - action or dialogue!'}",
+    "${isFrench ? 'Développement du personnage et du monde' : 'Character and world development'}",
+    "${isFrench ? 'Le problème ou défi apparaît' : 'The problem or challenge appears'}",
+    "${isFrench ? 'Action et tentative de résolution' : 'Action and attempt to resolve'}",
+    "${isFrench ? 'Conclusion mémorable!' : 'Memorable conclusion!'}"
   ],
   "vocabulary": [
     {
-      "word": "${isFrench ? 'curieux' : 'curious'}",
-      "definition": "${isFrench ? 'Qui veut apprendre ou découvrir de nouvelles choses' : 'Wanting to learn or know more about something'}",
-      "example": "${isFrench ? 'Le chat curieux explorait chaque coin.' : 'The curious cat explored every corner.'}"
+      "word": "${isFrench ? 'mot nouveau' : 'new word'}",
+      "definition": "${isFrench ? 'définition simple pour enfant' : 'simple child-friendly definition'}",
+      "example": "${isFrench ? 'Phrase exemple' : 'Example sentence'}"
     }
   ],
-  "theme": "${themes.join(', ')}"
+  "theme": "${chosenTheme}"
 }`;
 
   try {
@@ -98,15 +133,18 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks):
       messages: [
         {
           role: 'system',
-          content: `You are a creative children's story writer. Always respond with valid JSON only, no markdown formatting or code blocks. Write all story content in ${isFrench ? 'French' : 'English'}.`,
+          content: `You are a creative genius who writes children's stories. Every story you create is completely unique and different from anything you've written before. You NEVER repeat ideas, characters, or plots. You write in ${isFrench ? 'French' : 'English'}. Always respond with valid JSON only.`,
         },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      temperature: 0.8,
-      max_tokens: 2000,
+      temperature: 1.0, // Maximum creativity
+      max_tokens: 2500,
+      top_p: 0.95,
+      frequency_penalty: 0.8, // Strongly discourage repetition
+      presence_penalty: 0.8,  // Encourage new topics
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -126,6 +164,8 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks):
     if (!story.title || !Array.isArray(story.paragraphs) || story.paragraphs.length === 0) {
       throw new Error('Invalid story structure from Groq');
     }
+
+    console.log(`[STORY] Generated: "${story.title}" (theme: ${chosenTheme}, seed: ${storySeed})`);
 
     return story;
   } catch (error) {
