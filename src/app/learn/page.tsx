@@ -848,132 +848,140 @@ export default function LearnPage() {
           )}
         </AnimatePresence>
 
-        {/* Progress indicator - plus visible */}
+        {/* Spacer pour le footer fixe */}
         {!isCompleted && !showFeedbackStep && (
-          <div className="mt-8 sm:mt-12 flex justify-center gap-2 shrink-0">
-            {story.content.map((item, index) => (
-              <div
-                key={index}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  item.type === 'question' ? 'w-6' : 'w-10'
-                } ${
-                  index < currentIndex 
-                    ? 'bg-purple-400' 
-                    : index === currentIndex 
-                      ? 'bg-purple-500 scale-y-125' 
-                      : 'bg-gray-200'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Navigation controls - toujours visibles pour éviter le saut de page */}
-        {!isCompleted && !showFeedbackStep && currentIndex < story.content.length && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className={`mt-6 flex items-center justify-center gap-4 pb-4 shrink-0 transition-opacity ${
-              selectedAnswer !== null ? 'opacity-40 pointer-events-none' : 'opacity-100'
-            }`}
-          >
-            <motion.button
-              onClick={previousItem}
-              disabled={currentIndex === 0 || selectedAnswer !== null}
-              whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.05 : 1 }}
-              whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                currentIndex > 0 && selectedAnswer === null
-                  ? 'bg-white hover:bg-gray-50 text-gray-700 shadow-md hover:shadow-lg border border-gray-200'
-                  : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              }`}
-            >
-              <ChevronLeft size={22} />
-            </motion.button>
-
-            {/* Pause button with circular progress indicator */}
-            <div className="relative w-14 h-14">
-              {/* Circular progress ring */}
-              {!isPaused && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
-                <svg 
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] pointer-events-none"
-                  viewBox="0 0 68 68"
-                >
-                  {/* Background ring */}
-                  <circle
-                    cx="34"
-                    cy="34"
-                    r="32"
-                    fill="none"
-                    stroke="rgba(168, 85, 247, 0.25)"
-                    strokeWidth="3"
-                  />
-                  {/* Progress ring */}
-                  <circle
-                    cx="34"
-                    cy="34"
-                    r="32"
-                    fill="none"
-                    stroke={scrollProgress > 80 ? "#ef4444" : scrollProgress > 60 ? "#f59e0b" : "#a855f7"}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 32}
-                    strokeDashoffset={2 * Math.PI * 32 * (1 - scrollProgress / 100)}
-                    style={{ 
-                      transition: 'stroke-dashoffset 0.1s linear, stroke 0.3s ease',
-                      transform: 'rotate(-90deg)',
-                      transformOrigin: 'center'
-                    }}
-                  />
-                </svg>
-              )}
-              {/* Pulsing glow when near end */}
-              {!isPaused && scrollProgress > 80 && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
-                <motion.div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72px] h-[72px] rounded-full bg-red-400/30 pointer-events-none"
-                  animate={{ 
-                    scale: [1, 1.15, 1],
-                    opacity: [0.4, 0.7, 0.4]
-                  }}
-                  transition={{ 
-                    duration: 0.5,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-              )}
-              <motion.button
-                onClick={togglePause}
-                disabled={selectedAnswer !== null}
-                whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
-                whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
-                className={`absolute inset-0 rounded-full flex items-center justify-center transition-all ${
-                  selectedAnswer === null 
-                    ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl' 
-                    : 'bg-purple-300 text-white shadow-md cursor-not-allowed'
-                }`}
-              >
-                {isPaused ? <Play size={24} /> : <Pause size={24} />}
-              </motion.button>
-            </div>
-
-            <motion.button
-              onClick={nextItem}
-              disabled={currentIndex >= story.content.length - 1 || selectedAnswer !== null}
-              whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.05 : 1 }}
-              whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                currentIndex < story.content.length - 1 && selectedAnswer === null
-                  ? 'bg-white hover:bg-gray-50 text-gray-700 shadow-md hover:shadow-lg border border-gray-200'
-                  : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-              }`}
-            >
-              <ChevronRight size={22} />
-            </motion.button>
-          </motion.div>
+          <div className="h-32 sm:h-36 shrink-0" />
         )}
       </div>
+
+      {/* Footer fixe - Navigation controls */}
+      {!isCompleted && !showFeedbackStep && currentIndex < story.content.length && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="fixed bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-white via-white to-white/80 backdrop-blur-sm border-t border-gray-100"
+        >
+          <div className="w-full max-w-2xl mx-auto px-4 py-4">
+            {/* Progress indicator */}
+            <div className="flex justify-center gap-2 mb-4">
+              {story.content.map((item, index) => (
+                <div
+                  key={index}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    item.type === 'question' ? 'w-6' : 'w-10'
+                  } ${
+                    index < currentIndex 
+                      ? 'bg-purple-400' 
+                      : index === currentIndex 
+                        ? 'bg-purple-500 scale-y-125' 
+                        : 'bg-gray-200'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Navigation buttons */}
+            <div className={`flex items-center justify-center gap-4 transition-opacity ${
+              selectedAnswer !== null ? 'opacity-40 pointer-events-none' : 'opacity-100'
+            }`}>
+              <motion.button
+                onClick={previousItem}
+                disabled={currentIndex === 0 || selectedAnswer !== null}
+                whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.05 : 1 }}
+                whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.95 : 1 }}
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                  currentIndex > 0 && selectedAnswer === null
+                    ? 'bg-white hover:bg-gray-50 text-gray-700 shadow-md hover:shadow-lg border border-gray-200'
+                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                }`}
+              >
+                <ChevronLeft size={22} />
+              </motion.button>
+
+              {/* Pause button with circular progress indicator */}
+              <div className="relative w-14 h-14">
+                {/* Circular progress ring */}
+                {!isPaused && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
+                  <svg 
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[68px] h-[68px] pointer-events-none"
+                    viewBox="0 0 68 68"
+                  >
+                    {/* Background ring */}
+                    <circle
+                      cx="34"
+                      cy="34"
+                      r="32"
+                      fill="none"
+                      stroke="rgba(168, 85, 247, 0.25)"
+                      strokeWidth="3"
+                    />
+                    {/* Progress ring */}
+                    <circle
+                      cx="34"
+                      cy="34"
+                      r="32"
+                      fill="none"
+                      stroke={scrollProgress > 80 ? "#ef4444" : scrollProgress > 60 ? "#f59e0b" : "#a855f7"}
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 32}
+                      strokeDashoffset={2 * Math.PI * 32 * (1 - scrollProgress / 100)}
+                      style={{ 
+                        transition: 'stroke-dashoffset 0.1s linear, stroke 0.3s ease',
+                        transform: 'rotate(-90deg)',
+                        transformOrigin: 'center'
+                      }}
+                    />
+                  </svg>
+                )}
+                {/* Pulsing glow when near end */}
+                {!isPaused && scrollProgress > 80 && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
+                  <motion.div
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[72px] h-[72px] rounded-full bg-red-400/30 pointer-events-none"
+                    animate={{ 
+                      scale: [1, 1.15, 1],
+                      opacity: [0.4, 0.7, 0.4]
+                    }}
+                    transition={{ 
+                      duration: 0.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                )}
+                <motion.button
+                  onClick={togglePause}
+                  disabled={selectedAnswer !== null}
+                  whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
+                  whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
+                  className={`absolute inset-0 rounded-full flex items-center justify-center transition-all ${
+                    selectedAnswer === null 
+                      ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl' 
+                      : 'bg-purple-300 text-white shadow-md cursor-not-allowed'
+                  }`}
+                >
+                  {isPaused ? <Play size={24} /> : <Pause size={24} />}
+                </motion.button>
+              </div>
+
+              <motion.button
+                onClick={nextItem}
+                disabled={currentIndex >= story.content.length - 1 || selectedAnswer !== null}
+                whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.05 : 1 }}
+                whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.95 : 1 }}
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                  currentIndex < story.content.length - 1 && selectedAnswer === null
+                    ? 'bg-white hover:bg-gray-50 text-gray-700 shadow-md hover:shadow-lg border border-gray-200'
+                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                }`}
+              >
+                <ChevronRight size={22} />
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
