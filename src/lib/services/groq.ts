@@ -7,6 +7,10 @@ import type {
 } from '@/types';
 import { READING_LEVEL_INFO } from '@/lib/constants';
 
+// Import messages directly for server-side use
+import frMessages from '../../../messages/fr.json';
+import enMessages from '../../../messages/en.json';
+
 // Initialize Groq client
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -14,6 +18,19 @@ const groq = new Groq({
 
 // Model to use for generation
 const MODEL = 'llama-3.3-70b-versatile';
+
+// Messages by locale
+const messages: Record<string, typeof frMessages> = {
+  fr: frMessages,
+  en: enMessages,
+};
+
+/**
+ * Get messages for a specific locale
+ */
+function getMessages(language: string) {
+  return messages[language] || messages.fr;
+}
 
 /**
  * Choisir un thème aléatoire parmi les préférences de l'utilisateur
@@ -30,6 +47,25 @@ function generateStorySeed(): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 10);
   return `${timestamp}-${random}`;
+}
+
+/**
+ * Get style requirements based on reading level
+ */
+function getStyleRequirements(readingLevel: ReadingLevel, t: typeof frMessages.prompts): string {
+  switch (readingLevel) {
+    case 'BEGINNER':
+    case 'EARLY':
+      return t.styleBeginnerEarly;
+    case 'DEVELOPING':
+    case 'INTERMEDIATE':
+      return t.styleDevelopingIntermediate;
+    case 'ADVANCED':
+    case 'PROFICIENT':
+      return t.styleAdvanced;
+    default:
+      return t.styleDevelopingIntermediate;
+  }
 }
 
 /**
@@ -50,6 +86,9 @@ export async function generateStory(params: {
     language = 'fr'
   } = params;
   
+  // Get localized messages
+  const t = getMessages(language).prompts;
+  
   const levelInfo = READING_LEVEL_INFO[readingLevel];
   const [minWords, maxWords] = levelInfo.wordCountRange;
   
@@ -63,65 +102,58 @@ export async function generateStory(params: {
   
   // Générer un seed unique pour cette histoire
   const storySeed = generateStorySeed();
-  
-  const isFrench = language === 'fr';
 
   // Contexte des intérêts (un seul au hasard si plusieurs)
   const randomInterest = interests.length > 0 
     ? interests[Math.floor(Math.random() * interests.length)]
     : null;
 
-  // PROMPT EN DEUX PHASES: D'abord générer les éléments créatifs, puis l'histoire
-  const prompt = `You are an award-winning children's book author known for creating unique, surprising, and delightful stories.
+  // Get style requirements for level
+  const styleRequirements = getStyleRequirements(readingLevel, t);
+
+  // Build the prompt using localized messages
+  const prompt = `${t.intro}
 
 STORY SEED: ${storySeed} (use this to ensure uniqueness)
 
-YOUR MISSION: Create a completely ORIGINAL and UNEXPECTED story that a 10-year-old will love.
+YOUR MISSION: ${t.mission}
 
-STEP 1 - INVENT UNIQUE ELEMENTS (be wildly creative):
-First, invent these elements - make them ORIGINAL, don't use common tropes:
-- A unique main character (NOT a princess, knight, or typical hero - think outside the box!)
-- An unusual setting (NOT a castle, forest, or school - surprise me!)
-- A creative problem or quest (NOT finding treasure or saving someone - be inventive!)
-- A surprising twist (something the reader won't expect)
+${t.step1Title}
+${t.step1Instructions}
 
-STEP 2 - WRITE THE STORY:
-Theme to incorporate: ${chosenTheme}
-${randomInterest ? `Child's interest to weave in: ${randomInterest}` : ''}
-Reading level: ${readingLevel} (${levelInfo.description}, ages ${levelInfo.ageRange})
-Target length: ${targetWords} words (${minWords}-${maxWords} range)
-Language: ${isFrench ? 'FRENCH (français)' : 'ENGLISH'}
+${t.step2Title}
+${t.themeLabel} ${chosenTheme}
+${randomInterest ? `${t.interestLabel} ${randomInterest}` : ''}
+${t.levelLabel} ${readingLevel} (${levelInfo.description}, ages ${levelInfo.ageRange})
+${t.lengthLabel} ${targetWords} ${t.wordsRange.replace('{min}', String(minWords)).replace('{max}', String(maxWords))}
+${t.language}
 
-STYLE REQUIREMENTS for a ${levelInfo.ageRange} year old:
-${readingLevel === 'BEGINNER' || readingLevel === 'EARLY' ? 
-  '- Very short sentences (5-8 words)\n- Simple vocabulary\n- Repetition for reinforcement\n- 2-3 new words maximum' :
-  readingLevel === 'DEVELOPING' || readingLevel === 'INTERMEDIATE' ?
-  '- Mix of short and medium sentences\n- Some descriptive language\n- 3-4 new vocabulary words\n- Simple dialogue' :
-  '- Varied sentence structure\n- Rich descriptive language\n- 4-5 challenging vocabulary words\n- Complex dialogue and emotions'}
+${t.styleTitle.replace('{age}', levelInfo.ageRange)}
+${styleRequirements}
 
-CREATIVE MANDATES:
-1. START with action or dialogue - NO "Once upon a time" or "Il était une fois"
-2. Include at least one FUNNY moment (kids love to laugh!)
-3. Add sensory details - what does it smell/sound/feel like?
-4. The hero must ACTIVELY solve the problem (not get rescued)
-5. End with something MEMORABLE - a joke, a surprise, or a touching moment
-6. Make it feel FRESH - avoid clichés!
+${t.creativeMandatesTitle}
+1. ${t.creativeMandate1}
+2. ${t.creativeMandate2}
+3. ${t.creativeMandate3}
+4. ${t.creativeMandate4}
+5. ${t.creativeMandate5}
+6. ${t.creativeMandate6}
 
-Respond with ONLY this JSON (no markdown, no code blocks):
+${t.jsonFormat}
 {
-  "title": "${isFrench ? 'Titre accrocheur et original' : 'Catchy original title'}",
+  "title": "${t.jsonTitleHint}",
   "paragraphs": [
-    "${isFrench ? 'Accroche immédiate - action ou dialogue!' : 'Immediate hook - action or dialogue!'}",
-    "${isFrench ? 'Développement du personnage et du monde' : 'Character and world development'}",
-    "${isFrench ? 'Le problème ou défi apparaît' : 'The problem or challenge appears'}",
-    "${isFrench ? 'Action et tentative de résolution' : 'Action and attempt to resolve'}",
-    "${isFrench ? 'Conclusion mémorable!' : 'Memorable conclusion!'}"
+    "${t.jsonParagraphHints[0]}",
+    "${t.jsonParagraphHints[1]}",
+    "${t.jsonParagraphHints[2]}",
+    "${t.jsonParagraphHints[3]}",
+    "${t.jsonParagraphHints[4]}"
   ],
   "vocabulary": [
     {
-      "word": "${isFrench ? 'mot nouveau' : 'new word'}",
-      "definition": "${isFrench ? 'définition simple pour enfant' : 'simple child-friendly definition'}",
-      "example": "${isFrench ? 'Phrase exemple' : 'Example sentence'}"
+      "word": "${t.jsonWordHint}",
+      "definition": "${t.jsonDefinitionHint}",
+      "example": "${t.jsonExampleHint}"
     }
   ],
   "theme": "${chosenTheme}"
@@ -133,7 +165,7 @@ Respond with ONLY this JSON (no markdown, no code blocks):
       messages: [
         {
           role: 'system',
-          content: `You are a creative genius who writes children's stories. Every story you create is completely unique and different from anything you've written before. You NEVER repeat ideas, characters, or plots. You write in ${isFrench ? 'French' : 'English'}. Always respond with valid JSON only.`,
+          content: t.systemRole,
         },
         {
           role: 'user',
@@ -165,7 +197,7 @@ Respond with ONLY this JSON (no markdown, no code blocks):
       throw new Error('Invalid story structure from Groq');
     }
 
-    console.log(`[STORY] Generated: "${story.title}" (theme: ${chosenTheme}, seed: ${storySeed})`);
+    console.log(`[STORY] Generated: "${story.title}" (theme: ${chosenTheme}, seed: ${storySeed}, lang: ${language})`);
 
     return story;
   } catch (error) {
@@ -192,15 +224,13 @@ export async function generateQuestions(params: {
     language = 'fr'
   } = params;
   
+  // Get localized messages
+  const t = getMessages(language).questions;
+  
   const levelInfo = READING_LEVEL_INFO[readingLevel];
-  const isFrench = language === 'fr';
   
   // Determine question type distribution based on reading level
   const questionTypes = getQuestionTypesForLevel(readingLevel);
-
-  const languageInstruction = isFrench
-    ? 'Write all questions, options, and explanations in FRENCH (français).'
-    : 'Write all questions, options, and explanations in ENGLISH.';
 
   const prompt = `You are an educational content creator making reading comprehension questions.
 
@@ -211,7 +241,7 @@ ${story.paragraphs.map((p, i) => `[Paragraph ${i + 1}]: ${p}`).join('\n')}
 Target Audience: ${levelInfo.description} (ages ${levelInfo.ageRange})
 Difficulty Multiplier: ${difficultyMultiplier}x (1.0 is normal, higher is harder)
 
-IMPORTANT: ${languageInstruction}
+IMPORTANT: ${t.languageInstruction}
 
 Create ${numQuestions} questions testing these skills: ${questionTypes.join(', ')}
 
@@ -226,12 +256,12 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks):
 {
   "questions": [
     {
-      "questionText": "${isFrench ? 'Qu\'est-ce que le personnage principal a découvert?' : 'What did the main character discover?'}",
+      "questionText": "${t.exampleText}",
       "type": "MULTIPLE_CHOICE",
-      "options": ["${isFrench ? 'Un papillon' : 'A butterfly'}", "${isFrench ? 'Un oiseau' : 'A bird'}", "${isFrench ? 'Une fleur' : 'A flower'}", "${isFrench ? 'Un lapin' : 'A rabbit'}"],
-      "correctAnswer": "${isFrench ? 'Un papillon' : 'A butterfly'}",
+      "options": ${JSON.stringify(t.exampleOptions)},
+      "correctAnswer": "${t.exampleAnswer}",
       "correctIndex": 0,
-      "explanation": "${isFrench ? 'Bravo! L\'histoire nous dit que le personnage a trouvé un beau papillon.' : 'Great job! The story tells us the character found a beautiful butterfly.'}",
+      "explanation": "${t.exampleExplanation}",
       "difficulty": 1,
       "afterParagraph": 2
     }
@@ -247,7 +277,7 @@ Difficulty scale: 1 (easy) to 5 (expert)`;
       messages: [
         {
           role: 'system',
-          content: `You are an educational content creator. Always respond with valid JSON only, no markdown formatting or code blocks. Write all content in ${isFrench ? 'French' : 'English'}.`,
+          content: t.systemRole,
         },
         {
           role: 'user',
@@ -282,7 +312,7 @@ Difficulty scale: 1 (easy) to 5 (expert)`;
       options: Array.isArray(q.options) ? q.options.slice(0, 4) : ['Option A', 'Option B', 'Option C', 'Option D'],
       correctAnswer: q.correctAnswer || q.options?.[0] || 'Answer',
       correctIndex: typeof q.correctIndex === 'number' ? q.correctIndex : 0,
-      explanation: q.explanation || (isFrench ? 'Bon essai!' : 'Good try!'),
+      explanation: q.explanation || t.defaultExplanation,
       difficulty: Math.min(5, Math.max(1, q.difficulty || 1)),
       afterParagraph: Math.min(story.paragraphs.length - 1, Math.max(0, q.afterParagraph || index)),
     }));

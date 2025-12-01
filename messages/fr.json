@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "title": "Lisa - Apprends à lire en t'amusant",
+    "description": "Une aventure de lecture personnalisée pour les enfants"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "continue": "Continuer",
+    "back": "Retour",
+    "next": "Suivant",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "days": "jours"
+  },
+  "story": {
+    "generating": "Je crée une nouvelle histoire pour toi...",
+    "preparing": "Je prépare ton histoire...",
+    "letsRead": "Lisons ensemble! 📖",
+    "tryAgain": "Oups! Laisse-moi réessayer...",
+    "connectionIssue": "Connexion difficile, voici une histoire sauvegardée",
+    "loadError": "Impossible de charger l'histoire. Réessaie!",
+    "changeStory": "Changer d'histoire",
+    "nextStory": "Histoire suivante",
+    "navigationHint": "Clique sur les côtés pour naviguer ← →"
+  },
+  "feedback": {
+    "correct": "Super, tu as trouvé !",
+    "incorrect": "Pas grave, on apprend !",
+    "amazingWork": "Incroyable ! Tu es une vraie star ! 🌟",
+    "greatEffort": "Super travail ! Continue comme ça ! 📖",
+    "keepPracticing": "Continue à t'entraîner !"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "themes": "Thèmes préférés",
+    "level": "Niveau de lecture"
+  },
+  "onboarding": {
+    "welcome": "Bienvenue sur Lisa !",
+    "selectLanguage": "Choisis ta langue",
+    "selectThemes": "Qu'est-ce qui te passionne ?",
+    "ready": "Tu es prêt à commencer !"
+  },
+  "prompts": {
+    "systemRole": "Tu es un génie créatif qui écrit des histoires pour enfants. Chaque histoire que tu crées est complètement unique et différente de tout ce que tu as écrit avant. Tu ne répètes JAMAIS les idées, personnages ou intrigues. Tu écris en français. Réponds TOUJOURS avec du JSON valide uniquement.",
+    "intro": "Tu es un auteur de livres pour enfants primé, connu pour créer des histoires uniques, surprenantes et délicieuses.",
+    "mission": "Crée une histoire complètement ORIGINALE et INATTENDUE qu'un enfant de 10 ans va adorer.",
+    "step1Title": "ÉTAPE 1 - INVENTE DES ÉLÉMENTS UNIQUES (sois follement créatif):",
+    "step1Instructions": "D'abord, invente ces éléments - rends-les ORIGINAUX, n'utilise pas les clichés habituels:\n- Un personnage principal unique (PAS une princesse, un chevalier, ou un héros typique - sors des sentiers battus!)\n- Un lieu inhabituel (PAS un château, une forêt, ou une école - surprends-moi!)\n- Un problème ou une quête créative (PAS trouver un trésor ou sauver quelqu'un - sois inventif!)\n- Un rebondissement surprenant (quelque chose que le lecteur n'attend pas)",
+    "step2Title": "ÉTAPE 2 - ÉCRIS L'HISTOIRE:",
+    "themeLabel": "Thème à incorporer:",
+    "interestLabel": "Centre d'intérêt de l'enfant à intégrer:",
+    "levelLabel": "Niveau de lecture:",
+    "lengthLabel": "Longueur cible:",
+    "wordsRange": "mots (entre {min} et {max})",
+    "language": "Langue: FRANÇAIS",
+    "styleTitle": "STYLE D'ÉCRITURE pour un enfant de {age} ans:",
+    "styleBeginnerEarly": "- Phrases très courtes (5-8 mots)\n- Vocabulaire simple\n- Répétition pour renforcer l'apprentissage\n- 2-3 nouveaux mots maximum",
+    "styleDevelopingIntermediate": "- Mix de phrases courtes et moyennes\n- Un peu de langage descriptif\n- 3-4 nouveaux mots de vocabulaire\n- Dialogues simples",
+    "styleAdvanced": "- Structure de phrases variée\n- Langage descriptif riche\n- 4-5 mots de vocabulaire stimulants\n- Dialogues et émotions complexes",
+    "creativeMandatesTitle": "CONSIGNES CRÉATIVES:",
+    "creativeMandate1": "COMMENCE par de l'action ou du dialogue - PAS de \"Il était une fois\"",
+    "creativeMandate2": "Inclus au moins un moment DRÔLE (les enfants adorent rire!)",
+    "creativeMandate3": "Ajoute des détails sensoriels - ça sent/sonne/ressemble à quoi?",
+    "creativeMandate4": "Le héros doit ACTIVEMENT résoudre le problème (pas être sauvé)",
+    "creativeMandate5": "Termine par quelque chose de MÉMORABLE - une blague, une surprise, ou un moment touchant",
+    "creativeMandate6": "Rends ça FRAIS - évite les clichés!",
+    "jsonFormat": "Réponds avec UNIQUEMENT ce JSON (pas de markdown, pas de blocs de code):",
+    "jsonTitleHint": "Titre accrocheur et original",
+    "jsonParagraphHints": [
+      "Accroche immédiate - action ou dialogue!",
+      "Développement du personnage et du monde",
+      "Le problème ou défi apparaît",
+      "Action et tentative de résolution",
+      "Conclusion mémorable!"
+    ],
+    "jsonWordHint": "mot nouveau",
+    "jsonDefinitionHint": "définition simple pour enfant",
+    "jsonExampleHint": "Phrase exemple"
+  },
+  "questions": {
+    "systemRole": "Tu es un créateur de contenu éducatif. Réponds toujours avec du JSON valide uniquement, sans formatage markdown. Écris tout le contenu en français.",
+    "languageInstruction": "Écris toutes les questions, options et explications en FRANÇAIS.",
+    "exampleText": "Qu'est-ce que le personnage principal a découvert?",
+    "exampleOptions": ["Un papillon", "Un oiseau", "Une fleur", "Un lapin"],
+    "exampleAnswer": "Un papillon",
+    "exampleExplanation": "Bravo! L'histoire nous dit que le personnage a trouvé un beau papillon.",
+    "defaultExplanation": "Bon essai!"
+  }
+}

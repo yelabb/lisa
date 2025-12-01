@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "title": "Lisa - Learn to Read with Fun",
+    "description": "A personalized reading adventure for children"
+  },
+  "common": {
+    "loading": "Loading...",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "days": "days"
+  },
+  "story": {
+    "generating": "Creating a new story for you...",
+    "preparing": "Preparing your story...",
+    "letsRead": "Let's read together! 📖",
+    "tryAgain": "Oops! Let me try again...",
+    "connectionIssue": "Connection issue, here's a saved story",
+    "loadError": "Failed to load story. Please try again!",
+    "changeStory": "Change story",
+    "nextStory": "Next Story",
+    "navigationHint": "Click on the sides to navigate ← →"
+  },
+  "feedback": {
+    "correct": "Awesome, you got it!",
+    "incorrect": "No worries, we learn!",
+    "amazingWork": "Amazing work! You're a reading star! 🌟",
+    "greatEffort": "Great effort! Keep practicing! 📖",
+    "keepPracticing": "Keep practicing!"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "themes": "Preferred themes",
+    "level": "Reading level"
+  },
+  "onboarding": {
+    "welcome": "Welcome to Lisa!",
+    "selectLanguage": "Choose your language",
+    "selectThemes": "What are you passionate about?",
+    "ready": "You're ready to start!"
+  },
+  "prompts": {
+    "systemRole": "You are a creative genius who writes children's stories. Every story you create is completely unique and different from anything you've written before. You NEVER repeat ideas, characters, or plots. You write in English. Always respond with valid JSON only.",
+    "intro": "You are an award-winning children's book author known for creating unique, surprising, and delightful stories.",
+    "mission": "Create a completely ORIGINAL and UNEXPECTED story that a 10-year-old will love.",
+    "step1Title": "STEP 1 - INVENT UNIQUE ELEMENTS (be wildly creative):",
+    "step1Instructions": "First, invent these elements - make them ORIGINAL, don't use common tropes:\n- A unique main character (NOT a princess, knight, or typical hero - think outside the box!)\n- An unusual setting (NOT a castle, forest, or school - surprise me!)\n- A creative problem or quest (NOT finding treasure or saving someone - be inventive!)\n- A surprising twist (something the reader won't expect)",
+    "step2Title": "STEP 2 - WRITE THE STORY:",
+    "themeLabel": "Theme to incorporate:",
+    "interestLabel": "Child's interest to weave in:",
+    "levelLabel": "Reading level:",
+    "lengthLabel": "Target length:",
+    "wordsRange": "words ({min}-{max} range)",
+    "language": "Language: ENGLISH",
+    "styleTitle": "STYLE REQUIREMENTS for a {age} year old:",
+    "styleBeginnerEarly": "- Very short sentences (5-8 words)\n- Simple vocabulary\n- Repetition for reinforcement\n- 2-3 new words maximum",
+    "styleDevelopingIntermediate": "- Mix of short and medium sentences\n- Some descriptive language\n- 3-4 new vocabulary words\n- Simple dialogue",
+    "styleAdvanced": "- Varied sentence structure\n- Rich descriptive language\n- 4-5 challenging vocabulary words\n- Complex dialogue and emotions",
+    "creativeMandatesTitle": "CREATIVE MANDATES:",
+    "creativeMandate1": "START with action or dialogue - NO \"Once upon a time\"",
+    "creativeMandate2": "Include at least one FUNNY moment (kids love to laugh!)",
+    "creativeMandate3": "Add sensory details - what does it smell/sound/feel like?",
+    "creativeMandate4": "The hero must ACTIVELY solve the problem (not get rescued)",
+    "creativeMandate5": "End with something MEMORABLE - a joke, a surprise, or a touching moment",
+    "creativeMandate6": "Make it feel FRESH - avoid clichés!",
+    "jsonFormat": "Respond with ONLY this JSON (no markdown, no code blocks):",
+    "jsonTitleHint": "Catchy original title",
+    "jsonParagraphHints": [
+      "Immediate hook - action or dialogue!",
+      "Character and world development",
+      "The problem or challenge appears",
+      "Action and attempt to resolve",
+      "Memorable conclusion!"
+    ],
+    "jsonWordHint": "new word",
+    "jsonDefinitionHint": "simple child-friendly definition",
+    "jsonExampleHint": "Example sentence"
+  },
+  "questions": {
+    "systemRole": "You are an educational content creator. Always respond with valid JSON only, no markdown formatting or code blocks. Write all content in English.",
+    "languageInstruction": "Write all questions, options, and explanations in ENGLISH.",
+    "exampleText": "What did the main character discover?",
+    "exampleOptions": ["A butterfly", "A bird", "A flower", "A rabbit"],
+    "exampleAnswer": "A butterfly",
+    "exampleExplanation": "Great job! The story tells us the character found a beautiful butterfly.",
+    "defaultExplanation": "Good try!"
+  }
+}

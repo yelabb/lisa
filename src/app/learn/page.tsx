@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X, Shuffle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 import { useUserProgressStore, useReadingSessionStore } from '@/stores';
 import { useGenerateStory, useAnswerQuestion, useCompleteStory, useStartSession } from '@/hooks';
@@ -15,6 +16,12 @@ import type { WordHint, StoryQuestion } from '@/types';
 type OnboardingStep = 'welcome' | 'language' | 'themes' | 'ready' | 'complete';
 
 export default function LearnPage() {
+  // i18n
+  const tStory = useTranslations('story');
+  const tFeedback = useTranslations('feedback');
+  const tCommon = useTranslations('common');
+  const tSettings = useTranslations('settings');
+
   // Stores
   const { 
     userId, 
@@ -120,9 +127,7 @@ export default function LearnPage() {
   const loadNewStory = useCallback(async (excludeStoryId?: string) => {
     if (!progress) return;
 
-    setLisaState('thinking', language === 'fr' 
-      ? 'Je crée une nouvelle histoire pour toi...' 
-      : 'Creating a new story for you...');
+    setLisaState('thinking', tStory('generating'));
     
     try {
       // Utiliser tous les thèmes préférés de l'utilisateur
@@ -149,26 +154,18 @@ export default function LearnPage() {
       setSessionId(session.id);
       startSession(session.id);
 
-      setLisaState('reading', language === 'fr' 
-        ? 'Lisons ensemble! 📖' 
-        : 'Let\'s read together! 📖');
+      setLisaState('reading', tStory('letsRead'));
       
       if (result.cached) {
         // Indique que c'est une histoire du cache (fallback car génération échouée)
-        toast.info(language === 'fr' 
-          ? 'Connexion difficile, voici une histoire sauvegardée' 
-          : 'Connection issue, here\'s a saved story');
+        toast.info(tStory('connectionIssue'));
       }
     } catch (error) {
       console.error('Failed to load story:', error);
-      setLisaState('encouraging', language === 'fr' 
-        ? 'Oups! Laisse-moi réessayer...' 
-        : 'Oops! Let me try again...');
-      toast.error(language === 'fr' 
-        ? 'Impossible de charger l\'histoire. Réessaie!' 
-        : 'Failed to load story. Please try again.');
+      setLisaState('encouraging', tStory('tryAgain'));
+      toast.error(tStory('loadError'));
     }
-  }, [progress, selectedThemes, language, generateStory, setStory, startSessionMutation, startSession, setLisaState]);
+  }, [progress, selectedThemes, language, generateStory, setStory, startSessionMutation, startSession, setLisaState, tStory]);
 
   // Track if initial load has been triggered
   const hasTriggeredLoadRef = useRef(false);
@@ -199,14 +196,13 @@ export default function LearnPage() {
       readingTimeSeconds: stats.readingTimeSeconds,
     });
 
-    const isFrench = language === 'fr';
     setLisaState(
       stats.accuracy >= 0.8 ? 'celebration' : 'success',
       stats.accuracy >= 0.8 
-        ? (isFrench ? 'Incroyable! Tu es une vraie star! 🌟' : 'Amazing work! You\'re a reading star! 🌟')
-        : (isFrench ? 'Super travail! Continue comme ça! 📖' : 'Great effort! Keep practicing! 📖')
+        ? tFeedback('amazingWork')
+        : tFeedback('greatEffort')
     );
-  }, [story, isCompleted, language, completeSession, completeStoryMutation, sessionId, setLisaState]);
+  }, [story, isCompleted, completeSession, completeStoryMutation, sessionId, setLisaState, tFeedback]);
 
   // Auto-progression timer
   useEffect(() => {
@@ -365,7 +361,6 @@ export default function LearnPage() {
   // Get current content item
   const currentItem = story?.content[currentIndex];
   const isQuestion = currentItem?.type === 'question';
-  const isFrench = language === 'fr';
 
   // Loading state
   if (generateStory.isPending || !story) {
@@ -384,7 +379,7 @@ export default function LearnPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          {lisaMessage || (isFrench ? 'Je prépare ton histoire...' : 'Preparing your story...')}
+          {lisaMessage || tStory('preparing')}
         </motion.p>
         <motion.div
           className="mt-4 flex gap-1"
@@ -414,8 +409,8 @@ export default function LearnPage() {
           onClick={handleNextStory}
           disabled={generateStory.isPending}
           className="w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-sm hover:shadow-md flex items-center justify-center transition-all opacity-60 hover:opacity-100 backdrop-blur-sm disabled:opacity-40"
-          aria-label={isFrench ? 'Changer d\'histoire' : 'Change story'}
-          title={isFrench ? 'Changer d\'histoire' : 'Change story'}
+          aria-label={tStory('changeStory')}
+          title={tStory('changeStory')}
         >
           {generateStory.isPending ? (
             <Loader2 size={18} className="text-gray-600 animate-spin" />
@@ -428,7 +423,7 @@ export default function LearnPage() {
         <button
           onClick={() => setShowSettings(true)}
           className="w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-sm hover:shadow-md flex items-center justify-center transition-all opacity-60 hover:opacity-100 backdrop-blur-sm"
-          aria-label={isFrench ? 'Paramètres' : 'Settings'}
+          aria-label={tSettings('title')}
         >
           <Settings size={18} className="text-gray-600" />
         </button>
@@ -493,7 +488,7 @@ export default function LearnPage() {
               className="text-center mb-4"
             >
               <p className="text-xs text-gray-500 bg-gray-100 inline-block px-3 py-1.5 rounded-full">
-                {isFrench ? 'Clique sur les côtés pour naviguer ← →' : 'Click on the sides to navigate ← →'}
+                {tStory('navigationHint')}
               </p>
             </motion.div>
           )}
@@ -644,8 +639,8 @@ export default function LearnPage() {
                         showFeedbackStep.isCorrect ? 'text-green-600' : 'text-amber-600'
                       }`}>
                         {showFeedbackStep.isCorrect 
-                          ? (isFrench ? 'Super, tu as trouvé !' : 'Awesome, you got it!')
-                          : (isFrench ? 'Pas grave, on apprend !' : 'No worries, we learn!')
+                          ? tFeedback('correct')
+                          : tFeedback('incorrect')
                         }
                       </p>
                       
@@ -668,7 +663,7 @@ export default function LearnPage() {
                           : 'bg-amber-500 hover:bg-amber-600 text-white'
                       }`}
                     >
-                      {isFrench ? 'Continuer' : 'Continue'}
+                      {tCommon('continue')}
                       <ChevronRight size={20} />
                     </motion.button>
                   </motion.div>
@@ -724,10 +719,10 @@ export default function LearnPage() {
                       className="text-xl sm:text-2xl text-gray-800 font-medium"
                     >
                       {currentScore.total > 0 && currentScore.correct / currentScore.total >= 0.8
-                        ? (isFrench ? 'Incroyable ! Tu es une vraie star !' : 'Amazing! You\'re a reading star!')
+                        ? tFeedback('amazingWork')
                         : currentScore.total > 0 && currentScore.correct / currentScore.total >= 0.5
-                        ? (isFrench ? 'Bien joué ! Continue comme ça !' : 'Well done! Keep it up!')
-                        : (isFrench ? 'Continue à t\'entraîner !' : 'Keep practicing!')}
+                        ? tFeedback('greatEffort')
+                        : tFeedback('keepPracticing')}
                     </motion.p>
                     
                     {/* Score display with animation */}
@@ -749,7 +744,7 @@ export default function LearnPage() {
                           className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-semibold text-base"
                           whileHover={{ scale: 1.05 }}
                         >
-                          🔥 {progress.currentStreak} {isFrench ? 'jours' : 'days'}
+                          🔥 {progress.currentStreak} {tCommon('days')}
                         </motion.span>
                       )}
                     </motion.div>
@@ -767,12 +762,12 @@ export default function LearnPage() {
                       {generateStory.isPending ? (
                         <>
                           <Loader2 size={18} className="animate-spin" />
-                          {isFrench ? 'Chargement...' : 'Loading...'}
+                          {tCommon('loading')}
                         </>
                       ) : (
                         <>
                           <RefreshCw size={18} />
-                          {isFrench ? 'Histoire suivante' : 'Next Story'}
+                          {tStory('nextStory')}
                         </>
                       )}
                     </motion.button>
@@ -814,7 +809,7 @@ export default function LearnPage() {
                     onClick={() => setShowHint(null)}
                     className="text-xs text-gray-400 hover:text-gray-600 mt-2"
                   >
-                    {isFrench ? 'Fermer' : 'Close'}
+                    {tCommon('close')}
                   </button>
                 </div>
               </motion.div>
