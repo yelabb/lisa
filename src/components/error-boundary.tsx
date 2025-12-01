@@ -3,7 +3,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LisaCompanion } from '@/components/lisa';
 import { RefreshCw, Home } from 'lucide-react';
 
 interface Props {
@@ -49,13 +48,10 @@ export class ErrorBoundary extends Component<Props, State> {
               <p className="text-xl text-gray-600 mb-6">
                 Don&apos;t worry, even the best readers make mistakes sometimes!
               </p>
+              <p className="text-lg text-gray-500">
+                I&apos;m sorry! Something unexpected happened. Let&apos;s try again together!
+              </p>
             </div>
-
-            <LisaCompanion
-              state="struggle"
-              message={{ text: "I'm sorry! Something unexpected happened. Let's try again together!" }}
-              size="large"
-            />
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">

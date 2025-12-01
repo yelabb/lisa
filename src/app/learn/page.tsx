@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 
 import { useUserProgressStore, useReadingSessionStore } from '@/stores';
 import { useGenerateStory, useAnswerQuestion, useCompleteStory, useStartSession } from '@/hooks';
-import { LisaCompanion } from '@/components/lisa';
 import { WelcomeScreen, LanguageSelect, ThemeSelect, ReadyScreen } from '@/components/onboarding';
 import type { WordHint, StoryQuestion } from '@/types';
 
@@ -30,7 +29,6 @@ export default function LearnPage() {
     currentIndex,
     isPaused,
     currentScore,
-    lisaState,
     lisaMessage,
     setStory,
     startSession,
@@ -363,13 +361,6 @@ export default function LearnPage() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      {/* Lisa Companion */}
-      <LisaCompanion
-        state={lisaState}
-        message={lisaMessage ? { text: lisaMessage } : undefined}
-        showMessage={!!lisaMessage}
-      />
-
       <div className="w-full max-w-3xl">
         {/* Header */}
         <div className="text-center mb-12">

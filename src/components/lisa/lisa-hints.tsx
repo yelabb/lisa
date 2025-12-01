@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { LisaCompanion } from '@/components/lisa/lisa-companion';
 import type { LisaState, LisaMessage } from '@/types/lisa';
 
 interface UseLisaHintsOptions {
@@ -191,33 +190,4 @@ function getHintForContext(options: UseLisaHintsOptions): LisaHint | null {
   return null;
 }
 
-// Helper component that wraps LisaCompanion with hints
-interface LisaWithHintsProps {
-  context: UseLisaHintsOptions['context'];
-  step?: string;
-  correctAnswers?: number;
-  totalQuestions?: number;
-  isLoading?: boolean;
-  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
-  size?: 'small' | 'medium' | 'large';
-}
 
-export function LisaWithHints(props: LisaWithHintsProps) {
-  const { state, message, showMessage } = useLisaHints({
-    context: props.context,
-    step: props.step,
-    correctAnswers: props.correctAnswers,
-    totalQuestions: props.totalQuestions,
-    isLoading: props.isLoading,
-  });
-
-  return (
-    <LisaCompanion
-      state={state}
-      message={message}
-      showMessage={showMessage}
-      position={props.position}
-      size={props.size}
-    />
-  );
-}
