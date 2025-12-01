@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X } from 'lucide-react';
+import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X, Shuffle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useUserProgressStore, useReadingSessionStore } from '@/stores';
@@ -116,7 +116,7 @@ export default function LearnPage() {
   };
 
   // Load story when user is ready
-  const loadNewStory = useCallback(async (excludeStoryId?: string) => {
+  const loadNewStory = useCallback(async (excludeStoryId?: string, forceNew: boolean = false) => {
     if (!progress) return;
 
     setLisaState('thinking', language === 'fr' 
@@ -124,13 +124,19 @@ export default function LearnPage() {
       : 'Finding a great story for you...');
     
     try {
+      // Utiliser tous les thèmes préférés de l'utilisateur
+      const userThemes = progress.preferredThemes.length > 0 
+        ? progress.preferredThemes 
+        : (selectedThemes.length > 0 ? selectedThemes : ['adventure']);
+      
       const result = await generateStory.mutateAsync({
         readingLevel: progress.currentLevel,
-        theme: progress.preferredThemes[0] || selectedThemes[0] || 'adventure',
+        themes: userThemes, // Passer TOUS les thèmes
         interests: progress.interests,
         difficultyMultiplier: progress.difficultyMultiplier,
         language: language || 'fr',
         excludeIds: excludeStoryId ? [excludeStoryId] : [],
+        forceNew,
       });
 
       setStory(result.story);
@@ -291,7 +297,7 @@ export default function LearnPage() {
     setSessionId(null);
     setIsCompleted(false);
     hasTriggeredLoadRef.current = false;
-    loadNewStory(currentStoryId);
+    loadNewStory(currentStoryId, true); // forceNew = true pour générer une nouvelle histoire
   };
 
   // Render word with possible hint
@@ -395,19 +401,43 @@ export default function LearnPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-b from-white to-gray-50/50 flex flex-col p-4 sm:p-6">
-      {/* Settings button (discrete, top-right) */}
-      <button
-        onClick={() => setShowSettings(true)}
-        className="fixed top-4 right-4 w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-sm hover:shadow-md flex items-center justify-center transition-all opacity-60 hover:opacity-100 z-30 backdrop-blur-sm"
-        aria-label={isFrench ? 'Paramètres' : 'Settings'}
-      >
-        <Settings size={18} className="text-gray-600" />
-      </button>
+      {/* Top-right buttons: Change story & Settings */}
+      <div className="fixed top-4 right-4 flex items-center gap-2 z-30">
+        {/* Change story button */}
+        <button
+          onClick={handleNextStory}
+          disabled={generateStory.isPending}
+          className="w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-sm hover:shadow-md flex items-center justify-center transition-all opacity-60 hover:opacity-100 backdrop-blur-sm disabled:opacity-40"
+          aria-label={isFrench ? 'Changer d\'histoire' : 'Change story'}
+          title={isFrench ? 'Changer d\'histoire' : 'Change story'}
+        >
+          {generateStory.isPending ? (
+            <Loader2 size={18} className="text-gray-600 animate-spin" />
+          ) : (
+            <Shuffle size={18} className="text-gray-600" />
+          )}
+        </button>
+
+        {/* Settings button */}
+        <button
+          onClick={() => setShowSettings(true)}
+          className="w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow-sm hover:shadow-md flex items-center justify-center transition-all opacity-60 hover:opacity-100 backdrop-blur-sm"
+          aria-label={isFrench ? 'Paramètres' : 'Settings'}
+        >
+          <Settings size={18} className="text-gray-600" />
+        </button>
+      </div>
 
       {/* Settings dialog */}
       <SettingsDialog 
         isOpen={showSettings} 
-        onClose={() => setShowSettings(false)} 
+        onClose={(preferencesChanged) => {
+          setShowSettings(false);
+          // Si les préférences ont changé, générer une nouvelle histoire
+          if (preferencesChanged && story) {
+            handleNextStory();
+          }
+        }} 
       />
 
       {/* Answer feedback popup - FIXED position at root level */}

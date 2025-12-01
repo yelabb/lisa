@@ -20,14 +20,14 @@ const MODEL = 'llama-3.3-70b-versatile';
  */
 export async function generateStory(params: {
   readingLevel: ReadingLevel;
-  theme?: string;
+  themes?: string[];
   interests?: string[];
   difficultyMultiplier?: number;
   language?: string;
 }): Promise<GeneratedStory> {
   const { 
     readingLevel, 
-    theme = 'adventure', 
+    themes = ['adventure'], 
     interests = [], 
     difficultyMultiplier = 1.0,
     language = 'fr'
@@ -45,6 +45,11 @@ export async function generateStory(params: {
     ? `The child is interested in: ${interests.join(', ')}.`
     : '';
 
+  // Combiner tous les thèmes en une instruction claire
+  const themesDescription = themes.length > 1
+    ? `Combine these themes creatively: ${themes.join(', ')}. The story should blend elements from ALL these themes together.`
+    : `Theme: ${themes[0]}`;
+
   const isFrench = language === 'fr';
   const languageInstruction = isFrench 
     ? 'Write the story in FRENCH (français). Use simple, clear French appropriate for children learning to read.'
@@ -54,7 +59,7 @@ export async function generateStory(params: {
 
 Target Audience: ${levelInfo.description} (ages ${levelInfo.ageRange})
 Reading Level: ${readingLevel}
-Theme: ${theme}
+${themesDescription}
 ${interestsContext}
 
 IMPORTANT: ${languageInstruction}
@@ -84,7 +89,7 @@ Respond with ONLY valid JSON in this exact format (no markdown, no code blocks):
       "example": "${isFrench ? 'Le chat curieux explorait chaque coin.' : 'The curious cat explored every corner.'}"
     }
   ],
-  "theme": "${theme}"
+  "theme": "${themes.join(', ')}"
 }`;
 
   try {

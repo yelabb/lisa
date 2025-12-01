@@ -7,7 +7,7 @@ import { useUserProgressStore } from '@/stores';
 
 interface SettingsDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (preferencesChanged?: boolean) => void;
 }
 
 interface ThemeCategory {
@@ -274,9 +274,15 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   };
 
   const handleSave = () => {
+    // Vérifier si les thèmes ont changé
+    const originalThemes = progress?.preferredThemes || [];
+    const themesChanged = 
+      selectedThemes.length !== originalThemes.length ||
+      selectedThemes.some(theme => !originalThemes.includes(theme));
+    
     setLanguage(selectedLanguage);
     setPreferences(selectedThemes, progress?.interests || []);
-    onClose();
+    onClose(themesChanged);
   };
 
   const canSave = selectedThemes.length >= 1;
@@ -292,7 +298,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={() => onClose(false)}
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
           />
           
@@ -316,7 +322,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                   </span>
                 )}
                 <button
-                  onClick={onClose}
+                  onClick={() => onClose(false)}
                   className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
                 >
                   <X size={18} className="text-gray-500" />
@@ -417,7 +423,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                                           : 'border-gray-200 bg-white hover:border-gray-300'
                                       }`}
                                     >
-                                      <span className="text-base flex-shrink-0">{theme.emoji}</span>
+                                      <span className="text-base shrink-0">{theme.emoji}</span>
                                       <span className={`text-xs font-medium leading-tight ${
                                         isSelected ? 'text-purple-700' : 'text-gray-600'
                                       }`}>
@@ -449,7 +455,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             {/* Footer */}
             <div className="flex gap-3 p-4 border-t border-gray-100 bg-gray-50">
               <button
-                onClick={onClose}
+                onClick={() => onClose(false)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 text-gray-600 font-medium hover:bg-gray-100 transition-colors"
               >
                 {t.cancel}

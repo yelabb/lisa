@@ -4,10 +4,12 @@ import type { Story, ReadingLevel, GenerateStoryResponse } from '@/types';
 interface GenerateStoryParams {
   readingLevel: ReadingLevel;
   theme?: string;
+  themes?: string[]; // Plusieurs thèmes à combiner
   interests?: string[];
   difficultyMultiplier?: number;
   language?: string;
   excludeIds?: string[];
+  forceNew?: boolean;
 }
 
 // Generate a new story

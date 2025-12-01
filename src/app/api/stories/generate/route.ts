@@ -10,11 +10,16 @@ export async function POST(request: NextRequest) {
     const {
       readingLevel = 'BEGINNER',
       theme = 'adventure',
+      themes = [],
       interests = [],
       difficultyMultiplier = 1.0,
       language = 'fr',
       excludeIds = [],
+      forceNew = false,
     } = body;
+
+    // Utiliser themes[] si fourni, sinon fallback sur theme
+    const allThemes = themes.length > 0 ? themes : [theme];
 
     // Validate reading level
     const validLevels: ReadingLevel[] = [
@@ -33,24 +38,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try to get a cached story first
-    const cachedStory = await getCachedStory({
-      readingLevel,
-      theme,
-      excludeIds,
-    });
-
-    if (cachedStory) {
-      return NextResponse.json({
-        story: cachedStory,
-        cached: true,
+    // Try to get a cached story first (unless forceNew is true)
+    if (!forceNew) {
+      const cachedStory = await getCachedStory({
+        readingLevel,
+        theme,
+        excludeIds,
       });
+
+      if (cachedStory) {
+        return NextResponse.json({
+          story: cachedStory,
+          cached: true,
+        });
+      }
     }
 
     // Generate new story with Groq
     const generatedStory = await generateStory({
       readingLevel,
-      theme,
+      themes: allThemes,
       interests,
       difficultyMultiplier,
       language,
