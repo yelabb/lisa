@@ -147,7 +147,26 @@ export default function LearnPage() {
         excludeIds: excludeStoryId ? [excludeStoryId] : [],
       });
 
-      setStory(result.story);
+      // Filtrer les questions invalides avant d'afficher l'histoire
+      const filteredContent = result.story.content.filter((item) => {
+        if (item.type !== 'question') return true;
+        const q = item as StoryQuestion;
+        const isValid = !!(
+          q.text &&
+          q.options &&
+          Array.isArray(q.options) &&
+          q.options.length >= 2 &&
+          typeof q.correctIndex === 'number' &&
+          q.correctIndex >= 0 &&
+          q.correctIndex < q.options.length
+        );
+        if (!isValid) {
+          console.warn('Filtering out invalid question:', q);
+        }
+        return isValid;
+      });
+
+      setStory({ ...result.story, content: filteredContent });
       setIsCompleted(false);
       setSelectedAnswer(null);
       setShowFeedbackStep(null);
@@ -224,6 +243,8 @@ export default function LearnPage() {
     nextItemRef.current = nextItem;
     handleStoryCompleteRef.current = handleStoryComplete;
   }, [nextItem, handleStoryComplete]);
+
+
 
   // Auto-progression timer with progress tracking
   useEffect(() => {
