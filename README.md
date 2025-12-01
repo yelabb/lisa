@@ -95,8 +95,11 @@ lisa-next/
 │   └── migrations/        # Database migrations
 ├── src/
 │   ├── app/
+│   │   ├── api/           # API routes
+│   │   │   ├── stories/   # Story generation endpoints
+│   │   │   └── progress/  # Progress tracking endpoints
 │   │   ├── learn/         # Main reading experience page
-│   │   ├── layout.tsx     # Global layout
+│   │   ├── layout.tsx     # Global layout with providers
 │   │   ├── globals.css    # Global styles
 │   │   └── page.tsx       # Home (redirects to /learn)
 │   ├── components/
@@ -108,13 +111,41 @@ lisa-next/
 │   │   └── error-boundary.tsx
 │   ├── generated/
 │   │   └── prisma/        # Generated Prisma client
-│   └── lib/
-│       ├── constants.ts   # App constants and configuration
-│       ├── utils.ts       # Utility functions
-│       └── utils/
-│           └── error-handling.ts  # Rate limiting and retry logic
+│   ├── hooks/             # React Query hooks
+│   │   ├── use-story.ts   # Story generation hooks
+│   │   └── use-progress.ts # Progress tracking hooks
+│   ├── lib/
+│   │   ├── constants.ts   # App constants and configuration
+│   │   ├── utils.ts       # Utility functions
+│   │   ├── db/            # Database utilities
+│   │   │   ├── prisma.ts  # Prisma client singleton
+│   │   │   ├── stories.ts # Story CRUD operations
+│   │   │   └── progress.ts # Progress tracking
+│   │   ├── services/      # External services
+│   │   │   └── groq.ts    # Groq AI story/question generation
+│   │   └── utils/
+│   │       └── error-handling.ts  # Rate limiting and retry logic
+│   ├── providers/         # React context providers
+│   │   └── query-provider.tsx  # React Query provider
+│   ├── stores/            # Zustand state stores
+│   │   ├── user-progress.ts    # User progress with localStorage
+│   │   └── reading-session.ts  # Current reading session
+│   └── types/             # TypeScript types
+│       └── index.ts       # Shared type definitions
 └── public/                # Static assets
 ```
+
+## 🔌 API Endpoints
+
+### Story Generation
+- `POST /api/stories/generate` - Generate a new AI story with questions
+  - Body: `{ readingLevel, theme?, interests?, difficultyMultiplier? }`
+  - Returns: `{ story, cached }`
+
+### Progress Tracking
+- `GET /api/progress?userId=xxx` - Get user progress
+- `PUT /api/progress` - Update preferences or complete onboarding
+- `POST /api/progress/session` - Track answers and session completion
 
 ## 🎯 Features In Detail
 
@@ -180,9 +211,9 @@ Key models:
 - [x] Prisma with Neon PostgreSQL
 - [x] Core UI layouts and components
 - [x] Lisa companion system
-- [ ] Groq AI story generation integration
-- [ ] Question generation system
-- [ ] Progress tracking and leveling
+- [x] Groq AI story generation integration
+- [x] Question generation system
+- [x] Progress tracking and leveling
 
 ### Phase 2: Enhanced Learning
 - [ ] Vocabulary builder with word definitions

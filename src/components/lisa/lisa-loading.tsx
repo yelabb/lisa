@@ -9,27 +9,13 @@ interface LisaLoadingProps {
 }
 
 const LOADING_MESSAGES = {
-  story: [
-    "Creating a magical story just for you...",
-    "Picking the perfect words...",
-    "Adding some adventure...",
-    "Making it exciting...",
-  ],
-  question: [
-    "Thinking of fun questions...",
-    "Testing your knowledge...",
-    "Getting everything ready...",
-  ],
-  general: [
-    "Working on it...",
-    "Just a moment...",
-    "Almost ready...",
-  ],
+  story: "Creating a magical story just for you...",
+  question: "Thinking of fun questions...",
+  general: "Working on it...",
 };
 
 export function LisaLoading({ message, type = 'general' }: LisaLoadingProps) {
-  const messages = LOADING_MESSAGES[type];
-  const displayMessage = message || messages[Math.floor(Math.random() * messages.length)];
+  const displayMessage = message || LOADING_MESSAGES[type];
 
   return (
     <div className="flex flex-col items-center justify-center p-12">
@@ -37,7 +23,7 @@ export function LisaLoading({ message, type = 'general' }: LisaLoadingProps) {
       <div className="relative mb-8">
         {/* Pulsing Glow */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-2xl"
+          className="absolute inset-0 bg-linear-to-br from-purple-400 to-pink-400 rounded-full blur-2xl"
           animate={{
             scale: [1, 1.3, 1],
             opacity: [0.5, 0.8, 0.5],
@@ -51,7 +37,7 @@ export function LisaLoading({ message, type = 'general' }: LisaLoadingProps) {
 
         {/* Character Circle */}
         <motion.div
-          className="relative w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-2xl"
+          className="relative w-32 h-32 bg-linear-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-2xl"
           animate={{
             rotate: [0, 5, -5, 5, 0],
           }}
@@ -167,7 +153,7 @@ export function LisaLoading({ message, type = 'general' }: LisaLoadingProps) {
       {/* Progress Bar */}
       <div className="w-64 h-2 bg-gray-200 rounded-full overflow-hidden mt-6">
         <motion.div
-          className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"
+          className="h-full bg-linear-to-r from-purple-500 via-pink-500 to-blue-500"
           initial={{ x: '-100%' }}
           animate={{ x: '100%' }}
           transition={{
@@ -185,10 +171,10 @@ export function LisaLoading({ message, type = 'general' }: LisaLoadingProps) {
 export function LisaContentSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
-      <div className="h-6 bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 rounded-lg w-3/4" />
-      <div className="h-6 bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 rounded-lg w-full" />
-      <div className="h-6 bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 rounded-lg w-5/6" />
-      <div className="h-6 bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 rounded-lg w-2/3" />
+      <div className="h-6 bg-linear-to-r from-purple-200 via-pink-200 to-purple-200 rounded-lg w-3/4" />
+      <div className="h-6 bg-linear-to-r from-purple-200 via-pink-200 to-purple-200 rounded-lg w-full" />
+      <div className="h-6 bg-linear-to-r from-purple-200 via-pink-200 to-purple-200 rounded-lg w-5/6" />
+      <div className="h-6 bg-linear-to-r from-purple-200 via-pink-200 to-purple-200 rounded-lg w-2/3" />
     </div>
   );
 }

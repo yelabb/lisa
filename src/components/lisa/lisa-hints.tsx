@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LisaCompanion } from '@/components/lisa/lisa-companion';
 import type { LisaState, LisaMessage } from '@/types/lisa';
 
@@ -22,29 +22,37 @@ interface LisaHint {
 
 export function useLisaHints(options: UseLisaHintsOptions) {
   const [currentHint, setCurrentHint] = useState<LisaHint | null>(null);
-  const [hasShownHint, setHasShownHint] = useState(false);
+  const hasShownHintRef = useRef(false);
+  const prevContextRef = useRef(options.context);
 
   useEffect(() => {
     // Reset hint when context changes
-    setHasShownHint(false);
-    setCurrentHint(null);
+    if (prevContextRef.current !== options.context) {
+      hasShownHintRef.current = false;
+      prevContextRef.current = options.context;
+      queueMicrotask(() => {
+        setCurrentHint(null);
+      });
+    }
 
     const hint = getHintForContext(options);
     if (!hint) return;
 
     if (hint.trigger === 'immediate') {
-      setCurrentHint(hint);
-      setHasShownHint(true);
+      queueMicrotask(() => {
+        setCurrentHint(hint);
+        hasShownHintRef.current = true;
+      });
     } else if (hint.trigger === 'delay' && hint.delay) {
       const timer = setTimeout(() => {
-        if (!hasShownHint) {
+        if (!hasShownHintRef.current) {
           setCurrentHint(hint);
-          setHasShownHint(true);
+          hasShownHintRef.current = true;
         }
       }, hint.delay);
       return () => clearTimeout(timer);
     }
-  }, [options.context, options.step, options.isLoading, hasShownHint]);
+  }, [options.context, options.step, options.isLoading, options]);
 
   // Update hint based on performance
   useEffect(() => {
@@ -52,20 +60,24 @@ export function useLisaHints(options: UseLisaHintsOptions) {
       const accuracy = options.correctAnswers / options.totalQuestions;
       
       if (accuracy === 1 && options.totalQuestions >= 3) {
-        setCurrentHint({
-          state: 'celebration',
-          message: {
-            text: "Perfect score! You're crushing it! 🎉",
-          },
-          trigger: 'immediate',
+        queueMicrotask(() => {
+          setCurrentHint({
+            state: 'celebration',
+            message: {
+              text: "Perfect score! You're crushing it! 🎉",
+            },
+            trigger: 'immediate',
+          });
         });
       } else if (accuracy < 0.5 && options.totalQuestions >= 3) {
-        setCurrentHint({
-          state: 'encouraging',
-          message: {
-            text: "Don't worry! Every mistake helps you learn. You've got this! 💪",
-          },
-          trigger: 'immediate',
+        queueMicrotask(() => {
+          setCurrentHint({
+            state: 'encouraging',
+            message: {
+              text: "Don't worry! Every mistake helps you learn. You've got this! 💪",
+            },
+            trigger: 'immediate',
+          });
         });
       }
     }

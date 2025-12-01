@@ -70,7 +70,7 @@ export function LisaCompanion({
       >
         {/* Glow Effect */}
         <motion.div
-          className={`absolute inset-0 bg-gradient-to-br ${LISA_COLORS[state]} rounded-full blur-xl opacity-60`}
+          className={`absolute inset-0 bg-linear-to-br ${LISA_COLORS[state]} rounded-full blur-xl opacity-60`}
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.6, 0.8, 0.6],
@@ -84,7 +84,7 @@ export function LisaCompanion({
 
         {/* Main Circle */}
         <motion.div
-          className={`relative ${sizeConfig.container} bg-gradient-to-br ${LISA_COLORS[state]} rounded-full flex items-center justify-center shadow-2xl`}
+          className={`relative ${sizeConfig.container} bg-linear-to-br ${LISA_COLORS[state]} rounded-full flex items-center justify-center shadow-2xl`}
           animate={getAnimationForState(state)}
           transition={{
             duration: state === 'thinking' ? 1 : 2,
@@ -165,7 +165,7 @@ export function LisaCompanion({
               {message.action && (
                 <motion.button
                   onClick={message.action.onClick}
-                  className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-shadow"
+                  className="w-full mt-2 px-4 py-2 bg-linear-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-shadow"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -176,11 +176,11 @@ export function LisaCompanion({
               {/* Speech Bubble Triangle */}
               <div
                 className={`absolute bottom-3 ${
-                  messageOnLeft ? 'right-[-8px]' : 'left-[-8px]'
-                } w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ${
+                  messageOnLeft ? '-right-2' : '-left-2'
+                } w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent ${
                   messageOnLeft 
-                    ? 'border-l-[8px] border-l-white' 
-                    : 'border-r-[8px] border-r-white'
+                    ? 'border-l-8 border-l-white' 
+                    : 'border-r-8 border-r-white'
                 }`}
               />
             </div>

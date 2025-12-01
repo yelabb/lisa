@@ -47,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Oops! Something went wrong
               </h1>
               <p className="text-xl text-gray-600 mb-6">
-                Don't worry, even the best readers make mistakes sometimes!
+                Don&apos;t worry, even the best readers make mistakes sometimes!
               </p>
             </div>
 
