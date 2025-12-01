@@ -71,6 +71,10 @@ export default function LearnPage() {
     isCorrect: boolean;
     explanation: string;
   } | null>(null);
+  // Progress tracking for auto-scroll
+  const [scrollProgress, setScrollProgress] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [currentReadingTime, setCurrentReadingTime] = useState(5000);
 
   // Initialize user on mount
   useEffect(() => {
@@ -203,23 +207,53 @@ export default function LearnPage() {
     );
   }, [story, isCompleted, completeSession, completeStoryMutation, sessionId, setLisaState, tFeedback]);
 
-  // Auto-progression timer
+  // Calculate reading time based on word count
+  const calculateReadingTime = useCallback((text: string) => {
+    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+    // Base: ~150 words per minute for children learning to read
+    // That's about 400ms per word, with a minimum of 3s and maximum of 15s
+    const timePerWord = 400; // milliseconds
+    const baseTime = wordCount * timePerWord;
+    return Math.max(3000, Math.min(15000, baseTime));
+  }, []);
+
+  // Auto-progression timer with progress tracking
   useEffect(() => {
     if (!story || isPaused || isCompleted) return;
     
     const currentItem = story.content[currentIndex];
     if (!currentItem || currentItem.type === 'question' || selectedAnswer !== null) return;
 
+    // Calculate reading time based on word count
+    const readingTime = calculateReadingTime(currentItem.text);
+    setCurrentReadingTime(readingTime);
+    setScrollProgress(0);
+
+    // Progress update interval (60fps)
+    const progressInterval = 16;
+    const progressStep = (progressInterval / readingTime) * 100;
+    
+    const progressTimer = setInterval(() => {
+      setScrollProgress(prev => {
+        const next = prev + progressStep;
+        return next >= 100 ? 100 : next;
+      });
+    }, progressInterval);
+
     const timer = setTimeout(() => {
+      setScrollProgress(0);
       if (currentIndex < story.content.length - 1) {
         nextItem();
       } else {
         handleStoryComplete();
       }
-    }, 5000);
+    }, readingTime);
 
-    return () => clearTimeout(timer);
-  }, [currentIndex, isPaused, story, selectedAnswer, isCompleted, nextItem, handleStoryComplete]);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(progressTimer);
+    };
+  }, [currentIndex, isPaused, story, selectedAnswer, isCompleted, nextItem, handleStoryComplete, calculateReadingTime]);
 
   // Hide navigation hint after 5 seconds
   useEffect(() => {
@@ -845,19 +879,67 @@ export default function LearnPage() {
               <ChevronLeft size={22} />
             </motion.button>
 
-            <motion.button
-              onClick={togglePause}
-              disabled={selectedAnswer !== null}
-              whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
-              whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-                selectedAnswer === null 
-                  ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl' 
-                  : 'bg-purple-300 text-white shadow-md cursor-not-allowed'
-              }`}
-            >
-              {isPaused ? <Play size={24} /> : <Pause size={24} />}
-            </motion.button>
+            {/* Pause button with circular progress indicator */}
+            <div className="relative">
+              {/* Circular progress ring */}
+              {!isPaused && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
+                <svg 
+                  className="absolute -inset-1 w-16 h-16 -rotate-90"
+                  viewBox="0 0 64 64"
+                >
+                  {/* Background ring */}
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="29"
+                    fill="none"
+                    stroke="rgba(168, 85, 247, 0.2)"
+                    strokeWidth="3"
+                  />
+                  {/* Progress ring */}
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="29"
+                    fill="none"
+                    stroke={scrollProgress > 80 ? "#ef4444" : scrollProgress > 60 ? "#f59e0b" : "#a855f7"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 29}`}
+                    strokeDashoffset={`${2 * Math.PI * 29 * (1 - scrollProgress / 100)}`}
+                    className="transition-all duration-100"
+                  />
+                </svg>
+              )}
+              {/* Pulsing glow when near end */}
+              {!isPaused && scrollProgress > 80 && selectedAnswer === null && story.content[currentIndex]?.type === 'text' && (
+                <motion.div
+                  className="absolute -inset-2 rounded-full bg-red-400/30"
+                  animate={{ 
+                    scale: [1, 1.15, 1],
+                    opacity: [0.5, 0.8, 0.5]
+                  }}
+                  transition={{ 
+                    duration: 0.6,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              )}
+              <motion.button
+                onClick={togglePause}
+                disabled={selectedAnswer !== null}
+                whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
+                whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
+                className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                  selectedAnswer === null 
+                    ? 'bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl' 
+                    : 'bg-purple-300 text-white shadow-md cursor-not-allowed'
+                }`}
+              >
+                {isPaused ? <Play size={24} /> : <Pause size={24} />}
+              </motion.button>
+            </div>
 
             <motion.button
               onClick={nextItem}
