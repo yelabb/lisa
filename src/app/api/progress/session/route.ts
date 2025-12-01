@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   updateProgressAfterQuestion,
   updateProgressAfterStory,
+  getOrCreateUserProgress,
 } from '@/lib/db/progress';
 import { prisma } from '@/lib/db/prisma';
 
@@ -87,6 +88,9 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
+
+        // Ensure user exists in the database before creating a session
+        await getOrCreateUserProgress(userId);
 
         // Create a new reading session
         const session = await prisma.readingSession.create({
