@@ -421,3 +421,129 @@ Respond with ONLY valid JSON:
     };
   }
 }
+
+/**
+ * Generate a fun, humorous explanation for any word
+ * Designed to make kids laugh while learning
+ */
+export async function generateFunWordExplanation(params: {
+  word: string;
+  context: string;
+  language?: string;
+}): Promise<{ word: string; definition: string; funFact: string; emoji: string }> {
+  const { word, context, language = 'fr' } = params;
+
+  const prompts = {
+    fr: `Tu es un professeur super drôle qui explique les mots aux enfants de manière hilarante et mémorable.
+
+Mot à expliquer: "${word}"
+${context ? `Contexte dans l'histoire: "${context}"` : ''}
+
+Ton travail: Crée une explication DRÔLE et MÉMORABLE qui fera rire un enfant tout en lui apprenant quelque chose.
+
+RÈGLES IMPORTANTES:
+1. La définition doit être simple mais avec une touche d'humour
+2. Le funFact doit être soit une vraie info surprenante, soit une comparaison drôle, soit une blague
+3. Choisis un emoji qui correspond parfaitement au mot ou à ton explication drôle
+4. Garde tout court et percutant (2-3 phrases max par champ)
+5. Utilise des comparaisons que les enfants comprennent (jeux vidéo, bonbons, animaux, super-héros)
+
+Exemples de style:
+- Pour "courage": "C'est quand tu manges les brocolis même si tu préférerais des bonbons. Ou quand tu dis bonjour à quelqu'un de nouveau!"
+- Pour "délicieux": "Tellement bon que tes papilles font la danse de la victoire! 🕺"
+- Pour "rapide": "Comme Flash, mais en moins rouge et avec plus de devoirs à faire."
+
+Réponds UNIQUEMENT avec ce JSON (pas de markdown):
+{
+  "word": "${word}",
+  "definition": "explication simple avec touche d'humour",
+  "funFact": "fait rigolo ou comparaison drôle",
+  "emoji": "🎯"
+}`,
+    en: `You are a super funny teacher who explains words to kids in hilarious and memorable ways.
+
+Word to explain: "${word}"
+${context ? `Context in the story: "${context}"` : ''}
+
+Your job: Create a FUNNY and MEMORABLE explanation that will make a child laugh while teaching them something.
+
+IMPORTANT RULES:
+1. The definition should be simple but with a touch of humor
+2. The funFact should be either a real surprising fact, a funny comparison, or a joke
+3. Choose an emoji that perfectly matches the word or your funny explanation
+4. Keep everything short and punchy (2-3 sentences max per field)
+5. Use comparisons kids understand (video games, candy, animals, superheroes)
+
+Style examples:
+- For "courage": "It's when you eat broccoli even though you'd rather have candy. Or when you say hello to someone new!"
+- For "delicious": "So good that your taste buds do the victory dance! 🕺"
+- For "fast": "Like Flash, but less red and with more homework to do."
+
+Respond ONLY with this JSON (no markdown):
+{
+  "word": "${word}",
+  "definition": "simple explanation with humor touch",
+  "funFact": "funny fact or silly comparison",
+  "emoji": "🎯"
+}`
+  };
+
+  const prompt = prompts[language as keyof typeof prompts] || prompts.fr;
+
+  try {
+    const completion = await groq.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: language === 'fr' 
+            ? 'Tu es un professeur super drôle qui adore faire rire les enfants. Réponds toujours en JSON valide sans formatage markdown.'
+            : 'You are a super funny teacher who loves making kids laugh. Always respond with valid JSON without markdown formatting.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      temperature: 0.9, // High creativity for humor
+      max_tokens: 300,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No content in Groq response');
+    }
+
+    let jsonContent = content.trim();
+    if (jsonContent.startsWith('```')) {
+      jsonContent = jsonContent.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    }
+
+    const result = JSON.parse(jsonContent);
+    
+    return {
+      word: result.word || word,
+      definition: result.definition || (language === 'fr' ? `Un mot super intéressant!` : `A super interesting word!`),
+      funFact: result.funFact || (language === 'fr' ? `C'est un mot qu'on utilise souvent!` : `It's a word we use often!`),
+      emoji: result.emoji || '✨',
+    };
+  } catch (error) {
+    console.error('Error generating fun word explanation:', error);
+    // Fallback with pre-made fun responses
+    const fallbacks = {
+      fr: {
+        word,
+        definition: `C'est un mot que même les adultes trouvent parfois compliqué! 🤓`,
+        funFact: `Fun fact: tu viens de cliquer dessus, donc tu es curieux. C'est super! 🌟`,
+        emoji: '📚',
+      },
+      en: {
+        word,
+        definition: `It's a word that even adults sometimes find tricky! 🤓`,
+        funFact: `Fun fact: you just clicked on it, so you're curious. That's awesome! 🌟`,
+        emoji: '📚',
+      },
+    };
+    return fallbacks[language as keyof typeof fallbacks] || fallbacks.fr;
+  }
+}

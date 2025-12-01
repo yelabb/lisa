@@ -10,7 +10,15 @@ import { useUserProgressStore, useReadingSessionStore } from '@/stores';
 import { useGenerateStory, useAnswerQuestion, useCompleteStory, useStartSession } from '@/hooks';
 import { WelcomeScreen, LanguageSelect, ThemeSelect, ReadyScreen } from '@/components/onboarding';
 import { SettingsDialog } from '@/components/settings';
-import type { WordHint, StoryQuestion } from '@/types';
+import type { StoryQuestion } from '@/types';
+
+// Types for dynamic word explanations
+interface FunWordExplanation {
+  word: string;
+  definition: string;
+  funFact: string;
+  emoji: string;
+}
 
 // Onboarding steps
 type OnboardingStep = 'welcome' | 'language' | 'themes' | 'ready' | 'complete';
@@ -60,12 +68,15 @@ export default function LearnPage() {
   const startSessionMutation = useStartSession();
 
   // Local state
-  const [showHint, setShowHint] = useState<WordHint | null>(null);
+  const [showHint, setShowHint] = useState<FunWordExplanation | null>(null);
+  const [isLoadingHint, setIsLoadingHint] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showNavigationHint, setShowNavigationHint] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  // Cache for word explanations to avoid re-fetching
+  const wordExplanationsCache = useRef<Map<string, FunWordExplanation>>(new Map());
   // Feedback intégré comme une étape de l'histoire
   const [showFeedbackStep, setShowFeedbackStep] = useState<{
     isCorrect: boolean;
@@ -296,20 +307,66 @@ export default function LearnPage() {
   }, []);
 
   // Handle word click for hints
-  const handleWordClick = (word: string) => {
-    if (!story) return;
+  // Handle word click for hints - now works for ALL words
+  const handleWordClick = async (word: string, currentText: string) => {
+    if (!story || isLoadingHint) return;
     
-    // Nettoyer le mot des caractères de ponctuation pour la comparaison
+    // Clean the word for cache key
     const cleanWord = word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ]/g, '');
+    if (cleanWord.length < 2) return; // Skip very short words like "a", "à"
     
-    // Correspondance exacte uniquement
-    const hint = story.hints.find(h => {
-      const cleanHint = h.word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ]/g, '');
-      return cleanWord === cleanHint;
+    // Check cache first
+    const cachedExplanation = wordExplanationsCache.current.get(cleanWord);
+    if (cachedExplanation) {
+      setShowHint(cachedExplanation);
+      return;
+    }
+    
+    // Show loading state immediately with the word
+    setIsLoadingHint(true);
+    setShowHint({
+      word: word.replace(/[^a-zA-ZÀ-ÿ'-]/g, ''),
+      definition: '',
+      funFact: '',
+      emoji: '🤔',
     });
     
-    if (hint) {
-      setShowHint(hint);
+    try {
+      const response = await fetch('/api/words/explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: word.replace(/[^a-zA-ZÀ-ÿ'-]/g, ''),
+          context: currentText,
+          language: language || 'fr',
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch explanation');
+      
+      const explanation: FunWordExplanation = await response.json();
+      
+      // Cache the result
+      wordExplanationsCache.current.set(cleanWord, explanation);
+      
+      setShowHint(explanation);
+    } catch (error) {
+      console.error('Error fetching word explanation:', error);
+      // Fallback explanation
+      const fallback: FunWordExplanation = {
+        word: word.replace(/[^a-zA-ZÀ-ÿ'-]/g, ''),
+        definition: language === 'fr' 
+          ? `C'est un mot super intéressant ! 📚`
+          : `This is a super interesting word! 📚`,
+        funFact: language === 'fr'
+          ? `Tu es curieux, c'est génial ! Continue à explorer les mots.`
+          : `You're curious, that's awesome! Keep exploring words.`,
+        emoji: '✨',
+      };
+      wordExplanationsCache.current.set(cleanWord, fallback);
+      setShowHint(fallback);
+    } finally {
+      setIsLoadingHint(false);
     }
   };
 
@@ -373,29 +430,48 @@ export default function LearnPage() {
     loadNewStory(currentStoryId); // Toujours générer une nouvelle histoire
   };
 
-  // Render word with possible hint
-  const renderWord = (word: string, index: number) => {
+  // Render word - ALL words are now clickable
+  const renderWord = (word: string, index: number, fullText: string) => {
     if (!story) return word + ' ';
     
-    // Nettoyer le mot des caractères de ponctuation pour la comparaison
+    // Clean the word for checking
     const cleanWord = word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ]/g, '');
     
-    // Correspondance exacte uniquement (pas de includes partiel)
-    const hasHint = story.hints.some(h => {
+    // Skip very short words (less than 2 chars after cleaning) or just punctuation
+    if (cleanWord.length < 2) {
+      return <span key={index} className="inline">{word} </span>;
+    }
+
+    // Check if this word has a pre-defined hint (vocabulary word)
+    const hasVocabularyHint = story.hints.some(h => {
       const cleanHint = h.word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ]/g, '');
       return cleanWord === cleanHint;
     });
 
-    if (!hasHint) return word + ' ';
+    // Check if this word is currently being explained
+    const isCurrentWord = showHint?.word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ'-]/g, '') === cleanWord;
 
+    // All words are clickable, but vocabulary words have special styling
     return (
-      <span
+      <motion.span
         key={index}
-        onClick={() => handleWordClick(word)}
-        className="cursor-pointer border-b-2 border-dashed border-purple-400 hover:border-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-all px-1 py-0.5 rounded-sm mx-0.5"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleWordClick(word, fullText);
+        }}
+        className={`cursor-pointer transition-all duration-200 rounded-md px-1 py-0.5 mx-0.5 inline-block select-none ${
+          isCurrentWord
+            ? 'bg-purple-200 text-purple-800 scale-105 shadow-sm'
+            : hasVocabularyHint
+              ? 'border-b-2 border-dashed border-purple-400 hover:border-purple-600 hover:bg-purple-100 hover:text-purple-700'
+              : 'hover:bg-purple-50 hover:text-purple-600 active:bg-purple-100'
+        }`}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95, backgroundColor: 'rgb(233, 213, 255)' }}
+        layout
       >
         {word}
-      </span>
+      </motion.span>
     );
   };
 
@@ -588,8 +664,37 @@ export default function LearnPage() {
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="text-center"
                   >
+                    {/* Word click hint - subtle and auto-hide */}
+                    {currentIndex === 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="mb-5"
+                      >
+                        <motion.span 
+                          className="inline-flex items-center gap-2 text-xs bg-purple-50 text-purple-600 px-4 py-2 rounded-full border border-purple-100"
+                          animate={{ 
+                            scale: [1, 1.02, 1],
+                          }}
+                          transition={{ 
+                            duration: 2, 
+                            repeat: 2,
+                            repeatType: "reverse" 
+                          }}
+                        >
+                          <motion.span
+                            animate={{ y: [0, -3, 0] }}
+                            transition={{ duration: 0.8, repeat: Infinity }}
+                          >
+                            👆
+                          </motion.span>
+                          <span>{tCommon('tapWord')}</span>
+                        </motion.span>
+                      </motion.div>
+                    )}
                     <p className="text-2xl sm:text-3xl leading-relaxed sm:leading-loose text-gray-800 font-normal tracking-wide">
-                      {currentItem.text.split(' ').map((word, i) => renderWord(word, i))}
+                      {currentItem.text.split(' ').map((word, i) => renderWord(word, i, currentItem.text))}
                     </p>
                   </motion.div>
                 )}
@@ -830,7 +935,7 @@ export default function LearnPage() {
           </div>
         </div>
 
-        {/* Hint tooltip */}
+        {/* Hint tooltip - Fun word explanation modal */}
         <AnimatePresence>
           {showHint && (
             <>
@@ -838,32 +943,96 @@ export default function LearnPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => setShowHint(null)}
-                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+                onClick={() => !isLoadingHint && setShowHint(null)}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
               />
               <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 50, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                className="fixed bottom-8 left-1/2 -translate-x-1/2 max-w-md w-[calc(100%-2rem)] bg-white rounded-2xl shadow-2xl p-6 z-50 border border-gray-100"
+                exit={{ opacity: 0, y: 50, scale: 0.9 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="fixed bottom-8 left-1/2 -translate-x-1/2 max-w-md w-[calc(100%-2rem)] bg-white rounded-3xl shadow-2xl overflow-hidden z-50"
               >
-                <div className="text-center space-y-3">
-                  <h3 className="text-xl font-semibold text-purple-600">
-                    {showHint.word}
-                  </h3>
-                  <p className="text-gray-800 font-normal text-base">
-                    {showHint.definition}
-                  </p>
-                  <p className="text-sm text-gray-500 italic bg-gray-50 rounded-lg p-3">
-                    &ldquo;{showHint.example}&rdquo;
-                  </p>
-                  <button 
-                    onClick={() => setShowHint(null)}
-                    className="text-xs text-gray-400 hover:text-gray-600 mt-2"
-                  >
-                    {tCommon('close')}
-                  </button>
+                {/* Header with emoji */}
+                <div className="bg-linear-to-r from-purple-500 to-pink-500 px-6 py-4">
+                  <div className="flex items-center justify-center gap-3">
+                    <motion.span 
+                      className="text-4xl"
+                      animate={isLoadingHint ? { rotate: [0, 10, -10, 0] } : {}}
+                      transition={{ repeat: isLoadingHint ? Infinity : 0, duration: 0.5 }}
+                    >
+                      {showHint.emoji}
+                    </motion.span>
+                    <h3 className="text-2xl font-bold text-white">
+                      {showHint.word}
+                    </h3>
+                  </div>
                 </div>
+                
+                {/* Content */}
+                <div className="p-6 space-y-4">
+                  {isLoadingHint ? (
+                    <div className="flex flex-col items-center py-4">
+                      <motion.div
+                        className="flex gap-1"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        {[0, 1, 2].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="w-3 h-3 bg-purple-400 rounded-full"
+                            animate={{ y: [0, -10, 0] }}
+                            transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.15 }}
+                          />
+                        ))}
+                      </motion.div>
+                      <p className="text-gray-500 mt-3 text-sm">{tCommon('loadingExplanation')}</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Definition */}
+                      <div>
+                        <p className="text-gray-800 text-lg leading-relaxed">
+                          {showHint.definition}
+                        </p>
+                      </div>
+                      
+                      {/* Fun Fact */}
+                      {showHint.funFact && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                          className="bg-linear-to-r from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-200"
+                        >
+                          <div className="flex items-start gap-2">
+                            <span className="text-xl">💡</span>
+                            <div>
+                              <p className="text-xs font-semibold text-amber-700 mb-1">{tCommon('funFact')}</p>
+                              <p className="text-amber-900 text-sm leading-relaxed">
+                                {showHint.funFact}
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Close button */}
+                {!isLoadingHint && (
+                  <motion.button 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    onClick={() => setShowHint(null)}
+                    className="w-full py-4 bg-gray-50 hover:bg-gray-100 transition-colors text-gray-600 font-medium text-sm border-t border-gray-100"
+                  >
+                    {tCommon('close')} ✨
+                  </motion.button>
+                )}
               </motion.div>
             </>
           )}

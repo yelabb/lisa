@@ -11,7 +11,10 @@
     "close": "Fermer",
     "save": "Enregistrer",
     "cancel": "Annuler",
-    "days": "jours"
+    "days": "jours",
+    "tapWord": "Clique sur n'importe quel mot !",
+    "funFact": "Le savais-tu ?",
+    "loadingExplanation": "Je réfléchis..."
   },
   "story": {
     "generating": "Je crée une nouvelle histoire pour toi...",
@@ -22,7 +25,8 @@
     "loadError": "Impossible de charger l'histoire. Réessaie!",
     "changeStory": "Changer d'histoire",
     "nextStory": "Histoire suivante",
-    "navigationHint": "Clique sur les côtés pour naviguer ← →"
+    "navigationHint": "Clique sur les côtés pour naviguer ← →",
+    "wordHint": "👆 Clique sur un mot pour une explication drôle!"
   },
   "feedback": {
     "correct": "Super, tu as trouvé !",

@@ -11,7 +11,10 @@
     "close": "Close",
     "save": "Save",
     "cancel": "Cancel",
-    "days": "days"
+    "days": "days",
+    "tapWord": "Tap on any word!",
+    "funFact": "Did you know?",
+    "loadingExplanation": "Thinking..."
   },
   "story": {
     "generating": "Creating a new story for you...",
@@ -22,7 +25,8 @@
     "loadError": "Failed to load story. Please try again!",
     "changeStory": "Change story",
     "nextStory": "Next Story",
-    "navigationHint": "Click on the sides to navigate ← →"
+    "navigationHint": "Click on the sides to navigate ← →",
+    "wordHint": "👆 Click any word for a fun explanation!"
   },
   "feedback": {
     "correct": "Awesome, you got it!",
