@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, BarChart3, Library } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useReadingSettingsStore, useReadingSessionStore, getThemeStyles } from '@/stores';
+import { useReadingSettingsStore, useReadingSessionStore, useUserProgressStore, getThemeStyles } from '@/stores';
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -13,13 +13,21 @@ export function BottomNav() {
   const { theme: readingTheme } = useReadingSettingsStore();
   const themeStyles = getThemeStyles(readingTheme);
   const { story, lisaState } = useReadingSessionStore();
+  const { progress } = useUserProgressStore();
 
-  // Hide on learn page when story is active and not completed
-  // Show menu when story is completed (lisaState is 'celebration' or 'success')
+  // Check if onboarding is completed
+  const hasCompletedOnboarding = progress?.hasCompletedOnboarding ?? false;
+
+  // Hide conditions:
+  // 1. Always hide during onboarding (not completed)
+  // 2. Hide on settings page
+  // 3. Hide on learn page when story is active and not completed
   const isOnLearnPage = pathname === '/learn';
   const isOnSettingsPage = pathname === '/settings';
   const isStoryCompleted = lisaState === 'celebration' || lisaState === 'success';
-  const shouldHide = isOnSettingsPage || (isOnLearnPage && story && !isStoryCompleted);
+  
+  // IMPORTANT: Hide navigation during entire onboarding flow
+  const shouldHide = !hasCompletedOnboarding || isOnSettingsPage || (isOnLearnPage && story && !isStoryCompleted);
 
   const navItems = [
     {

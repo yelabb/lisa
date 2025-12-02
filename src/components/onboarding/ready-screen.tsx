@@ -51,8 +51,6 @@ export function ReadyScreen({ onStart }: ReadyScreenProps) {
       >
         {tips.map((tip, index) => {
           const Icon = TIPS_ICONS[index];
-          // Remove emoji from tip text since we use icons now
-          const cleanTip = tip.replace(/^[📖👆❓🌟]\s*/, '');
           
           return (
             <motion.div
@@ -66,7 +64,7 @@ export function ReadyScreen({ onStart }: ReadyScreenProps) {
                 <Icon size={18} className="text-white" strokeWidth={1.5} />
               </div>
               <span className="text-gray-700 font-light">
-                {cleanTip}
+                {tip}
               </span>
             </motion.div>
           );
