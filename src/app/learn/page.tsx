@@ -587,7 +587,7 @@ export default function LearnPage() {
     <>
     <div className={`min-h-screen ${themeStyles.backgroundGradient} flex flex-col transition-colors duration-500`}>
       {/* Barre de progression linéaire en haut - style Kobo */}
-      <div className={`fixed top-0 left-0 right-0 z-40 h-1 ${themeStyles.background}`}>
+      <div className={`fixed top-0 left-0 right-0 z-40 h-0.5 ${themeStyles.background}`}>
         <motion.div 
           className="h-full bg-gradient-to-r from-purple-400 to-purple-600"
           initial={{ width: 0 }}
@@ -597,10 +597,10 @@ export default function LearnPage() {
       </div>
 
       {/* Top bar - Très minimaliste comme Kobo */}
-      <div className="fixed top-1 left-0 right-0 z-30 px-4 py-2">
+      <div className="fixed top-2 left-0 right-0 z-30 px-4 py-1">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           {/* Progress indicator discret */}
-          <div className={`text-xs font-medium ${themeStyles.textMuted}`}>
+          <div className={`text-xs font-medium ${themeStyles.textMuted} bg-black/10 backdrop-blur-sm px-2 py-1 rounded-full`}>
             {currentIndex + 1} / {story.content.length}
           </div>
           
@@ -609,38 +609,38 @@ export default function LearnPage() {
             {/* Reading controls button */}
             <button
               onClick={() => setShowReadingControls(true)}
-              className={`w-9 h-9 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
+              className={`w-8 h-8 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
                 transition-all opacity-60 hover:opacity-100 ${themeStyles.hoverBg}`}
               aria-label="Confort de lecture"
               title="Confort de lecture"
             >
-              <BookOpen size={16} className={themeStyles.textSecondary} />
+              <BookOpen size={14} className={themeStyles.textSecondary} />
             </button>
 
             {/* Change story button */}
             <button
               onClick={handleNextStory}
               disabled={generateStory.isPending}
-              className={`w-9 h-9 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
+              className={`w-8 h-8 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
                 transition-all opacity-60 hover:opacity-100 disabled:opacity-40 ${themeStyles.hoverBg}`}
               aria-label={tStory('changeStory')}
               title={tStory('changeStory')}
             >
               {generateStory.isPending ? (
-                <Loader2 size={16} className={`${themeStyles.textSecondary} animate-spin`} />
+                <Loader2 size={14} className={`${themeStyles.textSecondary} animate-spin`} />
               ) : (
-                <Shuffle size={16} className={themeStyles.textSecondary} />
+                <Shuffle size={14} className={themeStyles.textSecondary} />
               )}
             </button>
 
             {/* Settings button */}
             <button
               onClick={() => setShowSettings(true)}
-              className={`w-9 h-9 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
+              className={`w-8 h-8 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
                 transition-all opacity-60 hover:opacity-100 ${themeStyles.hoverBg}`}
               aria-label={tSettings('title')}
             >
-              <Settings size={16} className={themeStyles.textSecondary} />
+              <Settings size={14} className={themeStyles.textSecondary} />
             </button>
           </div>
         </div>
@@ -667,7 +667,7 @@ export default function LearnPage() {
 
       {/* Zone de lecture principale - Style e-reader */}
       <div 
-        className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-14 pb-32"
+        className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-12 pb-20"
         style={{ maxWidth: `${readingWidth + 100}px`, margin: '0 auto', width: '100%' }}
       >
         {/* Header du livre */}
@@ -1167,68 +1167,55 @@ export default function LearnPage() {
         transition={{ delay: 0.3 }}
         className={`fixed bottom-0 left-0 right-0 z-50 ${themeStyles.overlayBg} backdrop-blur-sm border-t ${themeStyles.border}`}
       >
-        <div className="w-full max-w-2xl mx-auto px-4 py-4 sm:py-5">
-          {/* Indicateur de progression du paragraphe actuel - Barre linéaire */}
-          {!isQuestion && autoProgress && selectedAnswer === null && (
-            <div className={`h-1.5 rounded-full mb-4 overflow-hidden ${readingTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
-              <motion.div 
-                className={`h-full rounded-full ${
-                  scrollProgress > 80 ? 'bg-red-400' : scrollProgress > 60 ? 'bg-amber-400' : 'bg-purple-400'
-                }`}
-                animate={{ width: `${scrollProgress}%` }}
-                transition={{ duration: 0.1, ease: 'linear' }}
-              />
-            </div>
-          )}
-
-          {/* Navigation buttons - Plus grands et adaptés aux enfants */}
-          <div className={`flex items-center justify-center gap-4 sm:gap-6 transition-opacity ${
+        <div className="w-full max-w-2xl mx-auto px-4 py-3">
+          {/* Navigation buttons - Plus petits et plus discrets comme Kobo */}
+          <div className={`flex items-center justify-center gap-3 transition-opacity ${
             selectedAnswer !== null ? 'opacity-40 pointer-events-none' : 'opacity-100'
           }`}>
             <motion.button
               onClick={previousItem}
               disabled={currentIndex === 0 || selectedAnswer !== null}
-              whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.08 : 1 }}
-              whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.92 : 1 }}
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.05 : 1 }}
+              whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.95 : 1 }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                 currentIndex > 0 && selectedAnswer === null
-                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border-2 ${themeStyles.border}`
+                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
                   : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
               }`}
               aria-label="Précédent"
             >
-              <ChevronLeft size={28} strokeWidth={2.5} />
+              <ChevronLeft size={20} strokeWidth={2} />
             </motion.button>
 
-            {/* Pause button - Plus grand et plus visible */}
+            {/* Pause button - Plus petit */}
             <motion.button
               onClick={togglePause}
               disabled={selectedAnswer !== null}
-              whileHover={{ scale: selectedAnswer === null ? 1.08 : 1 }}
-              whileTap={{ scale: selectedAnswer === null ? 0.92 : 1 }}
-              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
-                selectedAnswer === null 
-                  ? 'bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white' 
+              whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
+              whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                selectedAnswer === null
+                  ? 'bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white'
                   : 'bg-purple-300 text-white cursor-not-allowed'
               }`}
               aria-label={isPaused ? 'Lecture' : 'Pause'}
             >
-              {isPaused ? <Play size={32} strokeWidth={2.5} fill="white" /> : <Pause size={32} strokeWidth={2.5} />}
+              {isPaused ? <Play size={24} strokeWidth={2} fill="white" /> : <Pause size={24} strokeWidth={2} />}
             </motion.button>
 
             <motion.button
               onClick={nextItem}
               disabled={currentIndex >= story.content.length - 1 || selectedAnswer !== null}
-              whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.08 : 1 }}
-              whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.92 : 1 }}
-              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.05 : 1 }}
+              whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.95 : 1 }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                 currentIndex < story.content.length - 1 && selectedAnswer === null
-                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border-2 ${themeStyles.border}`
+                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
                   : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
               }`}
               aria-label="Suivant"
             >
-              <ChevronRight size={28} strokeWidth={2.5} />
+              <ChevronRight size={20} strokeWidth={2} />
             </motion.button>
           </div>
         </div>
