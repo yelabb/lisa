@@ -92,5 +92,11 @@
     "exampleAnswer": "A butterfly",
     "exampleExplanation": "Great job! The story tells us the character found a beautiful butterfly.",
     "defaultExplanation": "Good try!"
+  },
+  "quality": {
+    "systemRole": "You fix ONLY obvious errors. If text is correct, respond exactly the same.",
+    "storyPrompt": "Correct ONLY spelling and grammar errors. Do NOT change the meaning.\n\nText: \"{text}\"\n\nIf correct, respond with the exact same text. Otherwise, fix ONLY errors.",
+    "questionPrompt": "Fix errors in: \"{text}\"\nIf correct, respond exactly the same.",
+    "wordPrompt": "Correct: \"{text}\"\nIf correct, respond exactly the same."
   }
 }

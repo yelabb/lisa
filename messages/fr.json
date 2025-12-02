@@ -92,5 +92,11 @@
     "exampleAnswer": "Un papillon",
     "exampleExplanation": "Bravo! L'histoire nous dit que le personnage a trouvé un beau papillon.",
     "defaultExplanation": "Bon essai!"
+  },
+  "quality": {
+    "systemRole": "Tu corriges UNIQUEMENT les fautes évidentes. Si le texte est correct, réponds exactement pareil.",
+    "storyPrompt": "Corrige UNIQUEMENT les fautes d'orthographe et de grammaire. Ne change PAS le sens.\n\nTexte: \"{text}\"\n\nSi le texte est correct, réponds exactement avec le même texte. Sinon, corrige SEULEMENT les fautes.",
+    "questionPrompt": "Corrige les fautes dans: \"{text}\"\nSi correct, réponds exactement pareil.",
+    "wordPrompt": "Corrige: \"{text}\"\nSi correct, réponds exactement pareil."
   }
 }

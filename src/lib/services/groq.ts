@@ -70,6 +70,109 @@ function getStyleRequirements(readingLevel: ReadingLevel, t: typeof frMessages.p
 }
 
 /**
+ * Clean and validate generated text to fix common issues
+ */
+function cleanGeneratedText(text: string): string {
+  if (!text) return text;
+  
+  // Fix common issues with generated text
+  const cleaned = text
+    // Remove unwanted characters and fix spacing
+    .replace(/\s+/g, ' ') // Multiple spaces to single space
+    .replace(/\s([.,!?;:])/g, '$1') // Remove space before punctuation
+    .replace(/([.,!?;:])\s*([a-zàâäéèêëïîôùûüÿœæçA-ZÀÂÄÉÈÊËÏÎÔÙÛÜŸŒÆÇ])/g, '$1 $2') // Add space after punctuation
+    // Fix words with numbers/letters stuck together
+    .replace(/([a-zàâäéèêëïîôùûüÿœæç])(\d)/gi, '$1 $2') // Letter followed by number
+    .replace(/(\d)([a-zàâäéèêëïîôùûüÿœæç])/gi, '$1 $2') // Number followed by letter
+    // Fix repeated punctuation
+    .replace(/([.,!?;:])\1+/g, '$1')
+    // Fix quotes and apostrophes - use escaped quotes
+    .replace(/\s+'/g, "'") // Remove space before apostrophe
+    .replace(/'\s+/g, "'") // Remove space after apostrophe
+    .trim();
+  
+  return cleaned;
+}
+
+/**
+ * Verify and correct spelling/grammar using AI
+ */
+async function verifyTextQuality(params: {
+  text: string;
+  language: string;
+  context: 'story' | 'question' | 'word';
+}): Promise<string> {
+  const { text, language, context } = params;
+  
+  // Skip verification for very short text (likely already clean)
+  if (text.length < 10) {
+    return text;
+  }
+  
+  // Get localized messages
+  const t = getMessages(language).quality;
+  
+  // Get the appropriate prompt based on context
+  const promptTemplates = {
+    story: t.storyPrompt,
+    question: t.questionPrompt,
+    word: t.wordPrompt,
+  };
+  
+  const prompt = promptTemplates[context].replace('{text}', text);
+
+  try {
+    const completion = await groq.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: t.systemRole,
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      temperature: 0.05, // Extremely low for minimal changes
+      max_tokens: Math.ceil(text.length * 1.2), // Slight buffer for corrections
+    });
+
+    const correctedText = completion.choices[0]?.message?.content?.trim();
+    if (!correctedText) {
+      return text;
+    }
+
+    // More lenient similarity check - allow 20-200% size change
+    const lengthRatio = correctedText.length / text.length;
+    if (lengthRatio < 0.2 || lengthRatio > 2.5) {
+      console.warn(`[QUALITY] Correction too different (${Math.round(lengthRatio * 100)}% size), keeping original`);
+      return text;
+    }
+
+    // Calculate word-level similarity
+    const originalWords = text.toLowerCase().split(/\s+/).length;
+    const correctedWords = correctedText.toLowerCase().split(/\s+/).length;
+    const wordRatio = correctedWords / originalWords;
+    
+    if (wordRatio < 0.5 || wordRatio > 1.8) {
+      console.warn(`[QUALITY] Word count too different (${Math.round(wordRatio * 100)}%), keeping original`);
+      return text;
+    }
+
+    // Log if correction was applied
+    if (correctedText !== text) {
+      console.log(`[QUALITY] ✓ Corrected: "${text.slice(0, 50)}..." → "${correctedText.slice(0, 50)}..."`);
+    }
+
+    return correctedText;
+  } catch (error) {
+    console.error('[QUALITY] Error during text verification:', error);
+    return text; // Return original text if verification fails
+  }
+}
+
+/**
  * Generate a story tailored to the user's reading level and interests
  */
 export async function generateStory(params: {
@@ -141,6 +244,13 @@ ${t.creativeMandatesTitle}
 5. ${t.creativeMandate5}
 6. ${t.creativeMandate6}
 
+QUALITÉ DU TEXTE - TRÈS IMPORTANT:
+- Vérifie TOUJOURS l'orthographe et la grammaire
+- AUCUN mot avec des chiffres ou lettres collés (exemple: "auto5", "maison3")
+- Ponctuation correcte avec espaces appropriés
+- Pas de mots coupés ou mal formés
+- Texte propre et professionnel
+
 ${t.jsonFormat}
 {
   "title": "${t.jsonTitleHint}",
@@ -200,6 +310,32 @@ ${t.jsonFormat}
     }
 
     console.log(`[STORY] Generated: "${story.title}" (theme: ${chosenTheme}, seed: ${storySeed}, lang: ${language})`);
+    console.log('[STORY] Cleaning and verifying text quality...');
+
+    // Clean and verify the story text
+    story.title = cleanGeneratedText(story.title);
+    story.title = await verifyTextQuality({ text: story.title, language, context: 'story' });
+    
+    // Clean and verify each paragraph
+    story.paragraphs = await Promise.all(
+      story.paragraphs.map(async (paragraph) => {
+        const cleaned = cleanGeneratedText(paragraph);
+        return await verifyTextQuality({ text: cleaned, language, context: 'story' });
+      })
+    );
+    
+    // Clean and verify vocabulary
+    if (story.vocabulary && Array.isArray(story.vocabulary)) {
+      story.vocabulary = await Promise.all(
+        story.vocabulary.map(async (vocab) => ({
+          word: cleanGeneratedText(vocab.word),
+          definition: await verifyTextQuality({ text: cleanGeneratedText(vocab.definition), language, context: 'word' }),
+          example: await verifyTextQuality({ text: cleanGeneratedText(vocab.example), language, context: 'word' }),
+        }))
+      );
+    }
+
+    console.log('[STORY] Text quality verification complete');
 
     return story;
   } catch (error) {
@@ -255,6 +391,13 @@ Requirements:
 - Provide clear, encouraging explanations
 - Indicate which paragraph the question relates to
 
+TEXT QUALITY - CRITICAL:
+- ALWAYS check spelling and grammar
+- NO words with numbers or letters stuck together (e.g., "book5", "house3")
+- Correct punctuation with appropriate spacing
+- No broken or malformed words
+- Clean, professional text
+
 Respond with ONLY valid JSON in this exact format (no markdown, no code blocks):
 {
   "questions": [
@@ -308,17 +451,34 @@ Difficulty scale: 1 (easy) to 5 (expert)`;
       throw new Error('Invalid questions structure from Groq');
     }
 
-    // Validate and sanitize questions
-    return result.questions.map((q: GeneratedQuestion, index: number) => ({
-      questionText: q.questionText || `Question ${index + 1}`,
-      type: validateQuestionType(q.type),
-      options: Array.isArray(q.options) ? q.options.slice(0, 4) : ['Option A', 'Option B', 'Option C', 'Option D'],
-      correctAnswer: q.correctAnswer || q.options?.[0] || 'Answer',
-      correctIndex: typeof q.correctIndex === 'number' ? q.correctIndex : 0,
-      explanation: q.explanation || t.defaultExplanation,
-      difficulty: Math.min(5, Math.max(1, q.difficulty || 1)),
-      afterParagraph: Math.min(story.paragraphs.length - 1, Math.max(0, q.afterParagraph || index)),
-    }));
+    console.log('[QUESTIONS] Cleaning and verifying questions quality...');
+
+    // Validate, clean, and verify questions
+    const cleanedQuestions = await Promise.all(
+      result.questions.map(async (q: GeneratedQuestion, index: number) => {
+        const questionText = cleanGeneratedText(q.questionText || `Question ${index + 1}`);
+        const options = Array.isArray(q.options) 
+          ? q.options.slice(0, 4).map(opt => cleanGeneratedText(opt))
+          : ['Option A', 'Option B', 'Option C', 'Option D'];
+        const correctAnswer = cleanGeneratedText(q.correctAnswer || q.options?.[0] || 'Answer');
+        const explanation = cleanGeneratedText(q.explanation || t.defaultExplanation);
+
+        return {
+          questionText: await verifyTextQuality({ text: questionText, language, context: 'question' }),
+          type: validateQuestionType(q.type),
+          options: await Promise.all(options.map(opt => verifyTextQuality({ text: opt, language, context: 'question' }))),
+          correctAnswer: await verifyTextQuality({ text: correctAnswer, language, context: 'question' }),
+          correctIndex: typeof q.correctIndex === 'number' ? q.correctIndex : 0,
+          explanation: await verifyTextQuality({ text: explanation, language, context: 'question' }),
+          difficulty: Math.min(5, Math.max(1, q.difficulty || 1)),
+          afterParagraph: Math.min(story.paragraphs.length - 1, Math.max(0, q.afterParagraph || index)),
+        };
+      })
+    );
+
+    console.log('[QUESTIONS] Text quality verification complete');
+    
+    return cleanedQuestions;
   } catch (error) {
     console.error('Error generating questions with Groq:', error);
     throw new Error('Failed to generate questions. Please try again.');
@@ -521,10 +681,15 @@ Respond ONLY with this JSON (no markdown):
 
     const result = JSON.parse(jsonContent);
     
+    // Clean the results
+    const cleanedWord = cleanGeneratedText(result.word || params.word);
+    const definition = cleanGeneratedText(result.definition || (language === 'fr' ? `Un mot super intéressant!` : `A super interesting word!`));
+    const funFact = cleanGeneratedText(result.funFact || (language === 'fr' ? `C'est un mot qu'on utilise souvent!` : `It's a word we use often!`));
+    
     return {
-      word: result.word || word,
-      definition: result.definition || (language === 'fr' ? `Un mot super intéressant!` : `A super interesting word!`),
-      funFact: result.funFact || (language === 'fr' ? `C'est un mot qu'on utilise souvent!` : `It's a word we use often!`),
+      word: cleanedWord,
+      definition: await verifyTextQuality({ text: definition, language, context: 'word' }),
+      funFact: await verifyTextQuality({ text: funFact, language, context: 'word' }),
       emoji: result.emoji || '✨',
     };
   } catch (error) {

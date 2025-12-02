@@ -455,7 +455,7 @@ export default function LearnPage() {
     
     // Skip very short words (less than 2 chars after cleaning) or just punctuation
     if (cleanWord.length < 2) {
-      return <span key={index} className="inline">{word} </span>;
+      return <span key={index} className="inline">{word}{' '}</span>;
     }
 
     // Check if this word has a pre-defined hint (vocabulary word)
@@ -499,7 +499,7 @@ export default function LearnPage() {
         whileTap={{ scale: 0.98 }}
         layout
       >
-        {word}
+        {word}{' '}
       </motion.span>
     );
   };
@@ -775,7 +775,7 @@ export default function LearnPage() {
                       style={{ 
                         fontSize: `${fontSize}rem`, 
                         lineHeight: lineHeight,
-                        wordSpacing: '0.05em',
+                        wordSpacing: '0.1em',
                       }}
                     >
                       {currentItem.text.split(' ').map((word, i) => renderWord(word, i, currentItem.text))}
