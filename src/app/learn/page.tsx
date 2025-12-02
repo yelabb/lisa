@@ -1175,10 +1175,10 @@ export default function LearnPage() {
         transition={{ delay: 0.3 }}
         className={`fixed bottom-0 left-0 right-0 z-50 ${themeStyles.overlayBg} backdrop-blur-sm border-t ${themeStyles.border}`}
       >
-        <div className="w-full max-w-2xl mx-auto px-4 py-3">
+        <div className="w-full max-w-2xl mx-auto px-4 py-4 sm:py-5">
           {/* Indicateur de progression du paragraphe actuel - Barre linéaire */}
           {!isQuestion && autoProgress && selectedAnswer === null && (
-            <div className={`h-1 rounded-full mb-3 overflow-hidden ${readingTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
+            <div className={`h-1.5 rounded-full mb-4 overflow-hidden ${readingTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
               <motion.div 
                 className={`h-full rounded-full ${
                   scrollProgress > 80 ? 'bg-red-400' : scrollProgress > 60 ? 'bg-amber-400' : 'bg-purple-400'
@@ -1189,51 +1189,54 @@ export default function LearnPage() {
             </div>
           )}
 
-          {/* Navigation buttons - Plus compacts */}
-          <div className={`flex items-center justify-center gap-6 transition-opacity ${
+          {/* Navigation buttons - Plus grands et adaptés aux enfants */}
+          <div className={`flex items-center justify-center gap-4 sm:gap-6 transition-opacity ${
             selectedAnswer !== null ? 'opacity-40 pointer-events-none' : 'opacity-100'
           }`}>
             <motion.button
               onClick={previousItem}
               disabled={currentIndex === 0 || selectedAnswer !== null}
-              whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.05 : 1 }}
-              whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.08 : 1 }}
+              whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.92 : 1 }}
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
                 currentIndex > 0 && selectedAnswer === null
-                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
+                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border-2 ${themeStyles.border}`
                   : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
               }`}
+              aria-label="Précédent"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={28} strokeWidth={2.5} />
             </motion.button>
 
-            {/* Pause button - Plus discret */}
+            {/* Pause button - Plus grand et plus visible */}
             <motion.button
               onClick={togglePause}
               disabled={selectedAnswer !== null}
-              whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
-              whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+              whileHover={{ scale: selectedAnswer === null ? 1.08 : 1 }}
+              whileTap={{ scale: selectedAnswer === null ? 0.92 : 1 }}
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
                 selectedAnswer === null 
-                  ? 'bg-purple-500 hover:bg-purple-600 text-white' 
+                  ? 'bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white' 
                   : 'bg-purple-300 text-white cursor-not-allowed'
               }`}
+              aria-label={isPaused ? 'Lecture' : 'Pause'}
             >
-              {isPaused ? <Play size={20} /> : <Pause size={20} />}
+              {isPaused ? <Play size={32} strokeWidth={2.5} fill="white" /> : <Pause size={32} strokeWidth={2.5} />}
             </motion.button>
 
             <motion.button
               onClick={nextItem}
               disabled={currentIndex >= story.content.length - 1 || selectedAnswer !== null}
-              whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.05 : 1 }}
-              whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.08 : 1 }}
+              whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.92 : 1 }}
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
                 currentIndex < story.content.length - 1 && selectedAnswer === null
-                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
+                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border-2 ${themeStyles.border}`
                   : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
               }`}
+              aria-label="Suivant"
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={28} strokeWidth={2.5} />
             </motion.button>
           </div>
         </div>
