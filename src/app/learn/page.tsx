@@ -584,6 +584,7 @@ export default function LearnPage() {
   }
 
   return (
+    <>
     <div className={`min-h-screen ${themeStyles.backgroundGradient} flex flex-col transition-colors duration-500`}>
       {/* Barre de progression linéaire en haut - style Kobo */}
       <div className={`fixed top-0 left-0 right-0 z-40 h-1 ${themeStyles.background}`}>
@@ -666,7 +667,7 @@ export default function LearnPage() {
 
       {/* Zone de lecture principale - Style e-reader */}
       <div 
-        className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-14 pb-24"
+        className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-14 pb-32"
         style={{ maxWidth: `${readingWidth + 100}px`, margin: '0 auto', width: '100%' }}
       >
         {/* Header du livre */}
@@ -1164,79 +1165,80 @@ export default function LearnPage() {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Footer minimaliste - Navigation controls */}
-      {!isCompleted && !showFeedbackStep && currentIndex < story.content.length && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className={`fixed bottom-0 left-0 right-0 z-30 ${themeStyles.overlayBg} backdrop-blur-sm border-t ${themeStyles.border}`}
-        >
-          <div className="w-full max-w-2xl mx-auto px-4 py-3">
-            {/* Indicateur de progression du paragraphe actuel - Barre linéaire */}
-            {!isQuestion && autoProgress && selectedAnswer === null && (
-              <div className={`h-1 rounded-full mb-3 overflow-hidden ${readingTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                <motion.div 
-                  className={`h-full rounded-full ${
-                    scrollProgress > 80 ? 'bg-red-400' : scrollProgress > 60 ? 'bg-amber-400' : 'bg-purple-400'
-                  }`}
-                  animate={{ width: `${scrollProgress}%` }}
-                  transition={{ duration: 0.1, ease: 'linear' }}
-                />
-              </div>
-            )}
-
-            {/* Navigation buttons - Plus compacts */}
-            <div className={`flex items-center justify-center gap-6 transition-opacity ${
-              selectedAnswer !== null ? 'opacity-40 pointer-events-none' : 'opacity-100'
-            }`}>
-              <motion.button
-                onClick={previousItem}
-                disabled={currentIndex === 0 || selectedAnswer !== null}
-                whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.05 : 1 }}
-                whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.95 : 1 }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                  currentIndex > 0 && selectedAnswer === null
-                    ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
-                    : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
-                }`}
-              >
-                <ChevronLeft size={20} />
-              </motion.button>
-
-              {/* Pause button - Plus discret */}
-              <motion.button
-                onClick={togglePause}
-                disabled={selectedAnswer !== null}
-                whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
-                whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                  selectedAnswer === null 
-                    ? 'bg-purple-500 hover:bg-purple-600 text-white' 
-                    : 'bg-purple-300 text-white cursor-not-allowed'
-                }`}
-              >
-                {isPaused ? <Play size={20} /> : <Pause size={20} />}
-              </motion.button>
-
-              <motion.button
-                onClick={nextItem}
-                disabled={currentIndex >= story.content.length - 1 || selectedAnswer !== null}
-                whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.05 : 1 }}
-                whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.95 : 1 }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                  currentIndex < story.content.length - 1 && selectedAnswer === null
-                    ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
-                    : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
-                }`}
-              >
-                <ChevronRight size={20} />
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
+
+    {/* Footer minimaliste - Navigation controls - VRAIMENT fixe, hors de tous les conteneurs */}
+    {!isCompleted && !showFeedbackStep && story && currentIndex < story.content.length && (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className={`fixed bottom-0 left-0 right-0 z-50 ${themeStyles.overlayBg} backdrop-blur-sm border-t ${themeStyles.border}`}
+      >
+        <div className="w-full max-w-2xl mx-auto px-4 py-3">
+          {/* Indicateur de progression du paragraphe actuel - Barre linéaire */}
+          {!isQuestion && autoProgress && selectedAnswer === null && (
+            <div className={`h-1 rounded-full mb-3 overflow-hidden ${readingTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}>
+              <motion.div 
+                className={`h-full rounded-full ${
+                  scrollProgress > 80 ? 'bg-red-400' : scrollProgress > 60 ? 'bg-amber-400' : 'bg-purple-400'
+                }`}
+                animate={{ width: `${scrollProgress}%` }}
+                transition={{ duration: 0.1, ease: 'linear' }}
+              />
+            </div>
+          )}
+
+          {/* Navigation buttons - Plus compacts */}
+          <div className={`flex items-center justify-center gap-6 transition-opacity ${
+            selectedAnswer !== null ? 'opacity-40 pointer-events-none' : 'opacity-100'
+          }`}>
+            <motion.button
+              onClick={previousItem}
+              disabled={currentIndex === 0 || selectedAnswer !== null}
+              whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.05 : 1 }}
+              whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.95 : 1 }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                currentIndex > 0 && selectedAnswer === null
+                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
+                  : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
+              }`}
+            >
+              <ChevronLeft size={20} />
+            </motion.button>
+
+            {/* Pause button - Plus discret */}
+            <motion.button
+              onClick={togglePause}
+              disabled={selectedAnswer !== null}
+              whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
+              whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                selectedAnswer === null 
+                  ? 'bg-purple-500 hover:bg-purple-600 text-white' 
+                  : 'bg-purple-300 text-white cursor-not-allowed'
+              }`}
+            >
+              {isPaused ? <Play size={20} /> : <Pause size={20} />}
+            </motion.button>
+
+            <motion.button
+              onClick={nextItem}
+              disabled={currentIndex >= story.content.length - 1 || selectedAnswer !== null}
+              whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.05 : 1 }}
+              whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.95 : 1 }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                currentIndex < story.content.length - 1 && selectedAnswer === null
+                  ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
+                  : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
+              }`}
+            >
+              <ChevronRight size={20} />
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+    )}
+  </>
   );
 }
