@@ -494,7 +494,7 @@ export default function LearnPage() {
           e.stopPropagation();
           handleWordClick(word, fullText);
         }}
-        className={`cursor-pointer transition-all duration-200 rounded-md px-0.5 py-0.5 inline-block select-none ${getWordStyles()}`}
+        className={`cursor-pointer transition-all duration-200 rounded-md px-0.5 py-0.5 inline select-none ${getWordStyles()}`}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         layout
