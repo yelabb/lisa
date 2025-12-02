@@ -23,6 +23,8 @@ interface ReadingSettings {
   autoProgress: boolean;
   // Vitesse de lecture (mots par minute)
   readingSpeed: number;
+  // Text-to-speech activé
+  textToSpeech: boolean;
 }
 
 interface ReadingSettingsStore extends ReadingSettings {
@@ -34,6 +36,7 @@ interface ReadingSettingsStore extends ReadingSettings {
   setBrightness: (brightness: number) => void;
   setAutoProgress: (enabled: boolean) => void;
   setReadingSpeed: (speed: number) => void;
+  setTextToSpeech: (enabled: boolean) => void;
   resetToDefaults: () => void;
 }
 
@@ -46,6 +49,7 @@ const DEFAULT_SETTINGS: ReadingSettings = {
   brightness: 100,
   autoProgress: true,
   readingSpeed: 100, // mots par minute (enfants - réduit pour lecture confortable)
+  textToSpeech: false, // TTS désactivé par défaut
 };
 
 export const useReadingSettingsStore = create<ReadingSettingsStore>()(
@@ -61,6 +65,7 @@ export const useReadingSettingsStore = create<ReadingSettingsStore>()(
       setBrightness: (brightness) => set({ brightness: Math.max(50, Math.min(100, brightness)) }),
       setAutoProgress: (autoProgress) => set({ autoProgress }),
       setReadingSpeed: (readingSpeed) => set({ readingSpeed: Math.max(80, Math.min(300, readingSpeed)) }),
+      setTextToSpeech: (textToSpeech) => set({ textToSpeech }),
       resetToDefaults: () => set(DEFAULT_SETTINGS),
     }),
     {

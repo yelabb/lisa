@@ -63,7 +63,9 @@
     "preview": "Aperçu du texte",
     "light": "Clair",
     "sepia": "Sépia",
-    "dark": "Sombre"
+    "dark": "Sombre",
+    "ttsEnable": "Activer la lecture audio",
+    "ttsDisable": "Désactiver la lecture audio"
   },
   "onboarding": {
     "welcome": "Bienvenue sur Lisa !",

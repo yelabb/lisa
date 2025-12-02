@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X, Shuffle, BookOpen } from 'lucide-react';
+import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X, Shuffle, BookOpen, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 
@@ -67,6 +67,8 @@ export default function LearnPage() {
     readingWidth,
     autoProgress,
     readingSpeed,
+    textToSpeech,
+    setTextToSpeech,
   } = useReadingSettingsStore();
 
   // Get theme styles
@@ -105,6 +107,27 @@ export default function LearnPage() {
   const [currentReadingTime, setCurrentReadingTime] = useState(5000);
   // Karaoke mode - track current word being read
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  // Ref pour suivre le dernier mot prononcé (éviter les répétitions)
+  const lastSpokenWordRef = useRef<number>(-1);
+
+  // Fonction pour lire un mot avec TTS
+  const speakWord = useCallback((word: string) => {
+    if (!textToSpeech || !('speechSynthesis' in window)) return;
+    
+    // Annuler toute lecture en cours
+    window.speechSynthesis.cancel();
+    
+    // Nettoyer le mot (enlever la ponctuation)
+    const cleanWord = word.replace(/[^a-zA-ZÀ-ÿ'-]/g, '');
+    if (cleanWord.length < 2) return;
+    
+    const utterance = new SpeechSynthesisUtterance(cleanWord);
+    utterance.lang = language === 'fr' ? 'fr-FR' : 'en-US';
+    utterance.rate = 0.8; // Vitesse plus lente pour les enfants
+    utterance.pitch = 1.1; // Ton légèrement plus aigu
+    
+    window.speechSynthesis.speak(utterance);
+  }, [textToSpeech, language]);
   // Refs for auto-scroll
   const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const textContainerRef = useRef<HTMLDivElement>(null);
@@ -304,6 +327,7 @@ export default function LearnPage() {
     // Reset progress at start
     setScrollProgress(0);
     setCurrentWordIndex(0);
+    lastSpokenWordRef.current = -1;
     
     const startTime = Date.now();
     const words = currentItem.text.split(' ');
@@ -335,6 +359,23 @@ export default function LearnPage() {
       clearInterval(progressTimer);
     };
   }, [currentIndex, isPaused, story, selectedAnswer, isCompleted, calculateReadingTime, autoProgress]);
+
+  // Speak current word if TTS is enabled
+  useEffect(() => {
+    if (!textToSpeech || !autoProgress || isPaused || !story) return;
+    
+    const currentItem = story.content[currentIndex];
+    if (!currentItem || currentItem.type !== 'text') return;
+    
+    // Éviter de répéter le même mot
+    if (lastSpokenWordRef.current === currentWordIndex) return;
+    lastSpokenWordRef.current = currentWordIndex;
+    
+    const words = currentItem.text.split(' ');
+    if (currentWordIndex < words.length) {
+      speakWord(words[currentWordIndex]);
+    }
+  }, [currentWordIndex, textToSpeech, autoProgress, isPaused, story, currentIndex, speakWord]);
 
   // Auto-scroll to current word being read (karaoke effect)
   useEffect(() => {
@@ -372,6 +413,15 @@ export default function LearnPage() {
   useEffect(() => {
     const timer = setTimeout(() => setShowNavigationHint(false), 5000);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Cleanup speech synthesis on unmount
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
   }, []);
 
   // Handle word click for hints
@@ -688,6 +738,21 @@ export default function LearnPage() {
           
           {/* Right buttons */}
           <div className="flex items-center gap-1">
+            {/* Text-to-Speech button */}
+            <button
+              onClick={() => setTextToSpeech(!textToSpeech)}
+              className={`w-8 h-8 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
+                transition-all ${textToSpeech ? 'opacity-100' : 'opacity-60'} hover:opacity-100 ${themeStyles.hoverBg}`}
+              aria-label={textToSpeech ? tSettings('ttsDisable') : tSettings('ttsEnable')}
+              title={textToSpeech ? tSettings('ttsDisable') : tSettings('ttsEnable')}
+            >
+              {textToSpeech ? (
+                <Volume2 size={14} className="text-purple-500" />
+              ) : (
+                <VolumeX size={14} className={themeStyles.textSecondary} />
+              )}
+            </button>
+
             {/* Reading controls button */}
             <button
               onClick={() => setShowReadingControls(true)}

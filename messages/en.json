@@ -63,7 +63,9 @@
     "preview": "Text preview",
     "light": "Light",
     "sepia": "Sepia",
-    "dark": "Dark"
+    "dark": "Dark",
+    "ttsEnable": "Enable audio reading",
+    "ttsDisable": "Disable audio reading"
   },
   "onboarding": {
     "welcome": "Welcome to Lisa!",
