@@ -528,8 +528,8 @@ export default function LearnPage() {
       // Priority 1: Word being read (karaoke effect)
       if (isBeingRead) {
         return readingTheme === 'dark'
-          ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white font-semibold shadow-lg'
-          : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold shadow-lg';
+          ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg'
+          : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg';
       }
       // Priority 2: Word already read (faded)
       if (hasBeenRead) {
@@ -542,8 +542,8 @@ export default function LearnPage() {
       // Priority 3: Word being explained
       if (isShowingHint) {
         return readingTheme === 'dark' 
-          ? 'bg-purple-800/50 text-purple-200 scale-105'
-          : 'bg-purple-200 text-purple-800 scale-105';
+          ? 'bg-purple-800/50 text-purple-200'
+          : 'bg-purple-200 text-purple-800';
       }
       // Priority 4: Vocabulary hint word
       if (hasVocabularyHint) {
@@ -572,12 +572,14 @@ export default function LearnPage() {
         }}
         className={`cursor-pointer rounded-lg px-1 py-0.5 inline-block select-none ${getWordStyles()}`}
         style={{
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-          transform: isBeingRead ? 'scale(1.08)' : 'scale(1)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          // Utiliser transform au lieu de changer scale pour éviter le décalage
+          transform: isBeingRead ? 'translateY(-2px)' : 'translateY(0)',
+          // Conserver l'espace pour éviter les shifts
+          minWidth: 'fit-content',
         }}
-        whileHover={!isBeingRead ? { scale: 1.02 } : {}}
+        whileHover={!isBeingRead ? { y: -1 } : {}}
         whileTap={{ scale: 0.98 }}
-        layout
       >
         {word}{' '}
       </motion.span>
