@@ -264,9 +264,16 @@ export default function LearnPage() {
     const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
     // Utiliser la vitesse de lecture configurée par l'utilisateur
     const msPerWord = 60000 / readingSpeed; // millisecondes par mot
-    const baseTime = wordCount * msPerWord;
-    return Math.max(3000, Math.min(20000, baseTime));
-  }, [readingSpeed]);
+    
+    // Ajuster selon le niveau de difficulté du joueur
+    // difficultyMultiplier: 0.5 = débutant (lecture plus lente), 2.0 = avancé (lecture plus rapide)
+    // On inverse le multiplicateur pour la vitesse : niveau bas = plus de temps
+    const difficultyFactor = progress?.difficultyMultiplier || 1.0;
+    const speedAdjustment = 1 / difficultyFactor; // 0.5 -> 2x plus lent, 2.0 -> 2x plus rapide
+    
+    const baseTime = wordCount * msPerWord * speedAdjustment;
+    return Math.max(3000, Math.min(30000, baseTime));
+  }, [readingSpeed, progress?.difficultyMultiplier]);
 
   // Refs to avoid effect re-running
   const nextItemRef = useRef(nextItem);
