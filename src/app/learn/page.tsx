@@ -1320,13 +1320,13 @@ export default function LearnPage() {
       </div>
     </div>
 
-    {/* Footer minimaliste - Navigation controls - Au-dessus de la barre de navigation */}
+    {/* Footer minimaliste - Navigation controls */}
     {!isCompleted && !showFeedbackStep && story && currentIndex < story.content.length && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className={`fixed bottom-20 left-0 right-0 z-50 ${themeStyles.overlayBg} backdrop-blur-md`}
+        className="fixed bottom-4 left-0 right-0 z-50"
       >
         <div className="w-full max-w-2xl mx-auto px-4 py-1">
           {/* Navigation buttons - Plus petits et plus discrets comme Kobo */}
