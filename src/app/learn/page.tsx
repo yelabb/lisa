@@ -103,6 +103,11 @@ export default function LearnPage() {
   const [scrollProgress, setScrollProgress] = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentReadingTime, setCurrentReadingTime] = useState(5000);
+  // Karaoke mode - track current word being read
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  // Refs for auto-scroll
+  const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const textContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize user on mount
   useEffect(() => {
@@ -290,14 +295,21 @@ export default function LearnPage() {
     
     // Reset progress at start
     setScrollProgress(0);
+    setCurrentWordIndex(0);
     
     const startTime = Date.now();
+    const words = currentItem.text.split(' ');
+    const wordCount = words.length;
 
     // Progress update interval (~60fps)
     const progressTimer = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min((elapsed / readingTime) * 100, 100);
       setScrollProgress(progress);
+      
+      // Update current word for karaoke effect
+      const wordProgress = Math.floor((progress / 100) * wordCount);
+      setCurrentWordIndex(Math.min(wordProgress, wordCount - 1));
     }, 16);
 
     const timer = setTimeout(() => {
@@ -315,6 +327,38 @@ export default function LearnPage() {
       clearInterval(progressTimer);
     };
   }, [currentIndex, isPaused, story, selectedAnswer, isCompleted, calculateReadingTime, autoProgress]);
+
+  // Auto-scroll to current word being read (karaoke effect)
+  useEffect(() => {
+    if (!autoProgress || isPaused || !wordRefs.current[currentWordIndex]) return;
+    
+    const currentWordElement = wordRefs.current[currentWordIndex];
+    if (currentWordElement) {
+      // Calculate if word is in viewport relative to window
+      const wordRect = currentWordElement.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      // Word position relative to viewport
+      const wordTop = wordRect.top;
+      const wordBottom = wordRect.bottom;
+      
+      // Define comfortable reading zone (middle 60% of screen)
+      const topThreshold = windowHeight * 0.25; // Top 25%
+      const bottomThreshold = windowHeight * 0.65; // Bottom 35% (leaving room for controls)
+      
+      // If word is outside comfortable zone, scroll to center it
+      const isAboveComfortZone = wordTop < topThreshold;
+      const isBelowComfortZone = wordBottom > bottomThreshold;
+      
+      if (isAboveComfortZone || isBelowComfortZone) {
+        currentWordElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }
+  }, [currentWordIndex, autoProgress, isPaused]);
 
   // Hide navigation hint after 5 seconds
   useEffect(() => {
@@ -465,20 +509,41 @@ export default function LearnPage() {
     });
 
     // Check if this word is currently being explained
-    const isCurrentWord = showHint?.word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ'-]/g, '') === cleanWord;
+    const isShowingHint = showHint?.word.toLowerCase().replace(/[^a-zA-ZÀ-ÿ'-]/g, '') === cleanWord;
+
+    // KARAOKE MODE: Check if this is the word currently being read
+    const isBeingRead = index === currentWordIndex && !isPaused && autoProgress;
+    const hasBeenRead = index < currentWordIndex && !isPaused && autoProgress;
 
     // Couleurs adaptées au thème
     const getWordStyles = () => {
-      if (isCurrentWord) {
+      // Priority 1: Word being read (karaoke effect)
+      if (isBeingRead) {
+        return readingTheme === 'dark'
+          ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white font-semibold shadow-lg'
+          : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold shadow-lg';
+      }
+      // Priority 2: Word already read (faded)
+      if (hasBeenRead) {
+        return readingTheme === 'dark'
+          ? 'opacity-40'
+          : readingTheme === 'sepia'
+          ? 'opacity-40'
+          : 'opacity-40';
+      }
+      // Priority 3: Word being explained
+      if (isShowingHint) {
         return readingTheme === 'dark' 
           ? 'bg-purple-800/50 text-purple-200 scale-105'
           : 'bg-purple-200 text-purple-800 scale-105';
       }
+      // Priority 4: Vocabulary hint word
       if (hasVocabularyHint) {
         return readingTheme === 'dark'
           ? 'border-b-2 border-dashed border-purple-400/60 hover:border-purple-300 hover:bg-purple-900/30 hover:text-purple-200'
           : 'border-b-2 border-dashed border-purple-400 hover:border-purple-600 hover:bg-purple-100 hover:text-purple-700';
       }
+      // Default: regular word
       return readingTheme === 'dark'
         ? 'hover:bg-white/5 hover:text-purple-300 active:bg-white/10'
         : readingTheme === 'sepia'
@@ -490,12 +555,19 @@ export default function LearnPage() {
     return (
       <motion.span
         key={index}
+        ref={(el) => {
+          wordRefs.current[index] = el;
+        }}
         onClick={(e) => {
           e.stopPropagation();
           handleWordClick(word, fullText);
         }}
-        className={`cursor-pointer transition-all duration-200 rounded-md px-0.5 py-0.5 inline select-none ${getWordStyles()}`}
-        whileHover={{ scale: 1.02 }}
+        className={`cursor-pointer rounded-lg px-1 py-0.5 inline-block select-none ${getWordStyles()}`}
+        style={{
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: isBeingRead ? 'scale(1.08)' : 'scale(1)',
+        }}
+        whileHover={!isBeingRead ? { scale: 1.02 } : {}}
         whileTap={{ scale: 0.98 }}
         layout
       >
@@ -770,16 +842,18 @@ export default function LearnPage() {
                         </motion.span>
                       </motion.div>
                     )}
-                    <p 
-                      className={`${themeStyles.text} ${fontClass} text-center leading-relaxed tracking-wide`}
-                      style={{ 
-                        fontSize: `${fontSize}rem`, 
-                        lineHeight: lineHeight,
-                        wordSpacing: '0.1em',
-                      }}
-                    >
-                      {currentItem.text.split(' ').map((word, i) => renderWord(word, i, currentItem.text))}
-                    </p>
+                    <div ref={textContainerRef} className="w-full">
+                      <p 
+                        className={`${themeStyles.text} ${fontClass} text-center leading-relaxed tracking-wide`}
+                        style={{ 
+                          fontSize: `${fontSize}rem`, 
+                          lineHeight: lineHeight,
+                          wordSpacing: '0.1em',
+                        }}
+                      >
+                        {currentItem.text.split(' ').map((word, i) => renderWord(word, i, currentItem.text))}
+                      </p>
+                    </div>
                   </motion.div>
                 )}
 
@@ -1187,21 +1261,50 @@ export default function LearnPage() {
               <ChevronLeft size={20} strokeWidth={2} />
             </motion.button>
 
-            {/* Pause button - Plus petit */}
-            <motion.button
-              onClick={togglePause}
-              disabled={selectedAnswer !== null}
-              whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
-              whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                selectedAnswer === null
-                  ? 'bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white'
-                  : 'bg-purple-300 text-white cursor-not-allowed'
-              }`}
-              aria-label={isPaused ? 'Lecture' : 'Pause'}
-            >
-              {isPaused ? <Play size={24} strokeWidth={2} fill="white" /> : <Pause size={24} strokeWidth={2} />}
-            </motion.button>
+            {/* Pause button with progress circle */}
+            <div className="relative w-14 h-14">
+              {/* Progress circle SVG */}
+              {autoProgress && !isPaused && selectedAnswer === null && (
+                <svg className="absolute inset-0 w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+                  <circle
+                    cx="28"
+                    cy="28"
+                    r="26"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    fill="none"
+                    className="text-purple-200 dark:text-purple-800"
+                  />
+                  <circle
+                    cx="28"
+                    cy="28"
+                    r="26"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 26}`}
+                    strokeDashoffset={`${2 * Math.PI * 26 * (1 - scrollProgress / 100)}`}
+                    className="text-purple-500 transition-all duration-100 ease-linear"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
+              {/* Pause/Play button */}
+              <motion.button
+                onClick={togglePause}
+                disabled={selectedAnswer !== null}
+                whileHover={{ scale: selectedAnswer === null ? 1.05 : 1 }}
+                whileTap={{ scale: selectedAnswer === null ? 0.95 : 1 }}
+                className={`absolute inset-0 w-12 h-12 m-auto rounded-full flex items-center justify-center transition-all shadow-lg ${
+                  selectedAnswer === null
+                    ? 'bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white'
+                    : 'bg-purple-300 text-white cursor-not-allowed'
+                }`}
+                aria-label={isPaused ? 'Lecture' : 'Pause'}
+              >
+                {isPaused ? <Play size={20} strokeWidth={2} fill="white" /> : <Pause size={20} strokeWidth={2} />}
+              </motion.button>
+            </div>
 
             <motion.button
               onClick={nextItem}
