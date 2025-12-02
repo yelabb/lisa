@@ -159,7 +159,7 @@ lisa-next/
 │   │   └── page.tsx                # Landing page
 │   ├── components/
 │   │   ├── ui/                     # shadcn/ui components
-│   │   ├── lisa/                   # Lisa companion & hints
+│   │   ├── lisa/                   # Lisa hints
 │   │   ├── onboarding/             # Onboarding flow
 │   │   ├── reading/                # Reading interface
 │   │   └── settings/               # Settings dialog
@@ -297,7 +297,6 @@ We welcome contributions from developers, educators, and designers! Lisa is buil
 - [x] Prisma ORM with PostgreSQL
 - [x] Groq AI integration for story generation
 - [x] Progressive reading interface
-- [x] Lisa companion system
 - [x] Adaptive progress tracking
 - [x] Onboarding flow
 

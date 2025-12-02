@@ -24,7 +24,7 @@ lisa-next/
 │   │   └── api/             # API routes (stories, questions)
 │   ├── components/
 │   │   ├── ui/              # shadcn/ui components
-│   │   └── lisa/            # Lisa companion (animated character)
+│   │   └── lisa/            # Lisa hints
 │   ├── generated/prisma/    # Generated Prisma client
 │   └── lib/
 │       ├── constants.ts     # App configuration
@@ -63,12 +63,6 @@ lisa-next/
 - Include error handling with custom error types
 
 ## Key Patterns
-
-### Lisa Companion States
-```typescript
-type LisaState = 'idle' | 'thinking' | 'success' | 'celebration' | 
-                 'struggle' | 'encouraging' | 'reading' | 'surprised';
-```
 
 ### Reading Levels (from Prisma)
 ```typescript

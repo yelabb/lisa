@@ -1,4 +1,4 @@
-// Lisa Companion Types
+// Lisa Types
 export type LisaState =
   | 'idle'
   | 'thinking'

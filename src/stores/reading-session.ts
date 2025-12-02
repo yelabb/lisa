@@ -18,7 +18,7 @@ interface ReadingSessionState {
   answers: SessionAnswer[];
   currentScore: { correct: number; total: number };
 
-  // Lisa companion state
+  // Lisa state
   lisaState: LisaState;
   lisaMessage: string | null;
 
@@ -193,7 +193,7 @@ export const useReadingSessionStore = create<ReadingSessionState>((set, get) => 
     });
   },
 
-  // Set Lisa companion state
+  // Set Lisa state
   setLisaState: (state, message) => {
     set({
       lisaState: state,
