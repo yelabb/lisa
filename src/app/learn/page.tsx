@@ -466,6 +466,11 @@ export default function LearnPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Scroll to top when changing content (tableau)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentIndex]);
+
   // Cleanup speech synthesis on unmount
   useEffect(() => {
     return () => {
