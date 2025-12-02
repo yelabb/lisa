@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 interface ThemeSelectProps {
@@ -242,30 +242,20 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-white flex flex-col items-center p-4 pb-32"
+      className="min-h-screen bg-white flex flex-col items-center p-4 pb-40"
     >
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center py-6 mb-4 sticky top-0 bg-gradient-to-b from-indigo-50 to-transparent z-10 w-full"
+        className="text-center py-6 mb-4 sticky top-0 bg-white/95 backdrop-blur-sm z-10 w-full"
       >
-        <h2 className="text-2xl font-semibold text-gray-800 mb-1">
+        <h2 className="text-2xl sm:text-3xl font-light text-gray-900 tracking-tight mb-1">
           {t('themesTitle')}
         </h2>
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 text-sm font-light">
           {t('themesSubtitle')}
         </p>
-        {selectedThemes.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
-          >
-            <Check size={14} />
-            {selectedThemes.length} {t('themesSelected')}
-          </motion.div>
-        )}
       </motion.div>
 
       {/* Categories */}
@@ -280,7 +270,7 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: categoryIndex * 0.05 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+              className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden"
             >
               {/* Category Header */}
               <button
@@ -293,7 +283,7 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
                     {language === 'en' ? category.en : category.fr}
                   </span>
                   {selectedCount > 0 && (
-                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                    <span className="px-2 py-0.5 bg-gray-900 text-white text-xs rounded-full font-medium">
                       {selectedCount}
                     </span>
                   )}
@@ -328,15 +318,15 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleToggleTheme(theme.id)}
-                            className={`relative flex items-center gap-2 p-3 rounded-xl border-2 transition-all text-left ${
+                            className={`relative flex items-center gap-2 p-3 rounded-xl border transition-all text-left ${
                               isSelected
-                                ? 'border-purple-400 bg-purple-50'
-                                : 'border-gray-100 bg-gray-50 hover:border-gray-200'
+                                ? 'border-gray-900 bg-gray-100'
+                                : 'border-gray-200 bg-white hover:border-gray-300'
                             }`}
                           >
                             <span className="text-lg flex-shrink-0">{theme.emoji}</span>
                             <span className={`text-xs font-medium leading-tight ${
-                              isSelected ? 'text-purple-700' : 'text-gray-600'
+                              isSelected ? 'text-gray-900' : 'text-gray-600'
                             }`}>
                               {language === 'en' ? theme.en : theme.fr}
                             </span>
@@ -345,9 +335,9 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center"
+                                className="absolute -top-1 -right-1 w-4 h-4 bg-gray-900 rounded-full flex items-center justify-center"
                               >
-                                <Check size={10} className="text-white" />
+                                <Check size={10} className="text-white" strokeWidth={3} />
                               </motion.div>
                             )}
                           </motion.button>
@@ -362,34 +352,45 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
         })}
       </div>
 
-      {/* Fixed bottom bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent"
-      >
+      {/* Fixed bottom bar - très visible */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-[100]">
         <div className="max-w-2xl mx-auto">
-          {selectedThemes.length === 0 && (
-            <p className="text-center text-gray-400 text-sm mb-3">
-              {t('themesMinSelect')}
-            </p>
-          )}
-          <motion.button
-            whileHover={canContinue ? { scale: 1.02 } : {}}
-            whileTap={canContinue ? { scale: 0.98 } : {}}
-            onClick={handleContinue}
-            disabled={!canContinue}
-            className={`w-full py-4 rounded-2xl text-lg font-medium transition-all ${
-              canContinue
-                ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg hover:shadow-xl'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            {t('themesButton')} 🚀
-          </motion.button>
+          {/* Progress indicator */}
+          <div className="flex justify-center mb-4">
+            <div className="flex gap-1.5">
+              <div className="w-1 h-1 bg-gray-300 rounded-full" />
+              <div className="w-1 h-1 bg-gray-300 rounded-full" />
+              <div className="w-8 h-1 bg-gray-900 rounded-full" />
+              <div className="w-1 h-1 bg-gray-300 rounded-full" />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-sm text-gray-500">
+              {selectedThemes.length === 0 ? (
+                <span>{t('themesMinSelect')}</span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Check size={16} className="text-gray-900" />
+                  <span className="font-medium text-gray-900">{selectedThemes.length}</span> {t('themesSelected')}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleContinue}
+              disabled={!canContinue}
+              className={`flex items-center gap-2 px-8 py-3 rounded-full text-base font-medium transition-all ${
+                canContinue
+                  ? 'bg-gray-900 text-white hover:bg-gray-800 active:scale-95'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {t('themesButton')}
+              <ArrowRight size={18} />
+            </button>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
