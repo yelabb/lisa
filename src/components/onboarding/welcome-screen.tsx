@@ -25,7 +25,7 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         transition={{ duration: 0.6 }}
         className="mb-16"
       >
-        <div className="w-20 h-20 bg-gray-900 rounded-2xl flex items-center justify-center">
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/20">
           <BookOpen size={36} className="text-white" strokeWidth={1.5} />
         </div>
       </motion.div>
@@ -47,9 +47,9 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.6 }}
-        className="max-w-sm text-center mb-16"
+        className="max-w-md text-center mb-16"
       >
-        <p className="text-lg text-gray-500 font-light leading-relaxed">
+        <p className="text-xl sm:text-2xl text-gray-600 font-light leading-relaxed tracking-tight">
           {t('helpMessage')}
         </p>
       </motion.div>
@@ -62,7 +62,7 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={onContinue}
-        className="group flex items-center gap-3 px-8 py-4 bg-gray-900 text-white text-lg font-medium rounded-full hover:bg-gray-800 transition-colors"
+        className="group flex items-center gap-3 px-8 py-4 bg-purple-600 text-white text-lg font-medium rounded-full hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/25"
       >
         {t('startButton')}
         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -76,7 +76,7 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
       >
         <div className="flex gap-1.5">
-          <div className="w-8 h-1 bg-gray-900 rounded-full" />
+          <div className="w-8 h-1 bg-purple-500 rounded-full" />
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
           <div className="w-1 h-1 bg-gray-300 rounded-full" />

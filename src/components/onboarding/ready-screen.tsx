@@ -58,9 +58,9 @@ export function ReadyScreen({ onStart }: ReadyScreenProps) {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 + index * 0.05 }}
-              className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100"
+              className="flex items-center gap-4 p-4 rounded-xl bg-white border border-gray-100 shadow-sm"
             >
-              <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center flex-shrink-0 shadow-sm shadow-purple-500/20">
                 <Icon size={18} className="text-white" strokeWidth={1.5} />
               </div>
               <span className="text-gray-700 font-light">
@@ -79,7 +79,7 @@ export function ReadyScreen({ onStart }: ReadyScreenProps) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={onStart}
-        className="group flex items-center gap-3 px-8 py-4 bg-gray-900 text-white text-lg font-medium rounded-full hover:bg-gray-800 transition-colors"
+        className="group flex items-center gap-3 px-8 py-4 bg-purple-600 text-white text-lg font-medium rounded-full hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/25"
       >
         {t('readFirstStory')}
         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -96,7 +96,7 @@ export function ReadyScreen({ onStart }: ReadyScreenProps) {
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
-          <div className="w-8 h-1 bg-gray-900 rounded-full" />
+          <div className="w-8 h-1 bg-purple-500 rounded-full" />
         </div>
       </motion.div>
     </motion.div>

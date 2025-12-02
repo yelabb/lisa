@@ -65,7 +65,7 @@ export function LanguageSelect({ onSelect }: LanguageSelectProps) {
             onClick={() => handleSelect(lang.code)}
             className={`relative flex items-center justify-between p-5 rounded-xl border transition-all ${
               selectedLanguage === lang.code
-                ? 'border-gray-900 bg-gray-50'
+                ? 'border-purple-400 bg-purple-50'
                 : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
           >
@@ -81,7 +81,7 @@ export function LanguageSelect({ onSelect }: LanguageSelectProps) {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center"
+                className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center"
               >
                 <Check size={14} className="text-white" strokeWidth={3} />
               </motion.div>
@@ -101,7 +101,7 @@ export function LanguageSelect({ onSelect }: LanguageSelectProps) {
         disabled={!selectedLanguage}
         className={`group flex items-center gap-3 px-8 py-4 rounded-full text-lg font-medium transition-all ${
           selectedLanguage
-            ? 'bg-gray-900 text-white hover:bg-gray-800 cursor-pointer'
+            ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-500/25 cursor-pointer'
             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
         }`}
       >
@@ -118,7 +118,7 @@ export function LanguageSelect({ onSelect }: LanguageSelectProps) {
       >
         <div className="flex gap-1.5">
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
-          <div className="w-8 h-1 bg-gray-900 rounded-full" />
+          <div className="w-8 h-1 bg-purple-500 rounded-full" />
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
         </div>
