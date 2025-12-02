@@ -138,9 +138,9 @@
     "defaultExplanation": "Good try!"
   },
   "quality": {
-    "systemRole": "You are an automatic proofreader. You must ONLY return the corrected text, WITHOUT ANY comments, explanations or additional text. Respond ONLY with the corrected text and nothing else.",
-    "storyPrompt": "Text to correct: \"{text}\"\n\nCRITICAL INSTRUCTIONS:\n- Correct ONLY spelling and grammar\n- Do NOT change the meaning or style\n- RETURN ONLY THE CORRECTED TEXT\n- Do NOT add ANY comments like \"No errors found\" or anything else\n- If text is already correct, respond with the exact same text",
-    "questionPrompt": "Text: \"{text}\"\n\nRespond ONLY with the corrected text, no comments.",
-    "wordPrompt": "Text: \"{text}\"\n\nRespond ONLY with the corrected text, no comments."
+    "systemRole": "You are a minimal text corrector. You fix ONLY technical errors (punctuation, spacing, quotes). NEVER rewrite, rephrase, or change the content. Return ONLY the corrected text, nothing else.",
+    "storyPrompt": "Text to correct: \"{text}\"\n\nFIX ONLY:\n- Missing or wrong punctuation (periods, commas, quotes)\n- Extra or missing spaces\n- Incorrect quote marks (\", ', «, »)\n- Obvious typos (repeated letters, missing letters)\n\nDO NOT:\n- Rewrite sentences\n- Change word order\n- Replace words with synonyms\n- Add or remove content\n- Change the style or tone\n\nReturn ONLY the minimally corrected text. If already correct, return the exact same text.",
+    "questionPrompt": "Text: \"{text}\"\n\nFix ONLY punctuation, spacing, and quotes. Do NOT rewrite. Return the corrected text only.",
+    "wordPrompt": "Text: \"{text}\"\n\nFix ONLY punctuation, spacing, and quotes. Do NOT rewrite. Return the corrected text only."
   }
 }

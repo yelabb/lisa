@@ -138,9 +138,9 @@
     "defaultExplanation": "Bon essai!"
   },
   "quality": {
-    "systemRole": "Tu es un correcteur automatique. Tu dois UNIQUEMENT retourner le texte corrigé, SANS AUCUN commentaire, explication ou texte additionnel. Réponds UNIQUEMENT avec le texte corrigé et rien d'autre.",
-    "storyPrompt": "Texte à corriger: \"{text}\"\n\nINSTRUCTIONS CRITIQUES:\n- Corrige UNIQUEMENT l'orthographe et la grammaire\n- Ne change PAS le sens ou le style\n- RETOURNE SEULEMENT LE TEXTE CORRIGÉ\n- N'ajoute AUCUN commentaire comme \"Pas de fautes trouvées\" ou autre\n- Si le texte est déjà correct, réponds exactement le même texte",
-    "questionPrompt": "Texte: \"{text}\"\n\nRéponds UNIQUEMENT avec le texte corrigé, sans commentaire.",
-    "wordPrompt": "Texte: \"{text}\"\n\nRéponds UNIQUEMENT avec le texte corrigé, sans commentaire."
+    "systemRole": "Tu es un correcteur minimal. Tu corriges UNIQUEMENT les erreurs techniques (ponctuation, espaces, guillemets). Ne réécris JAMAIS, ne reformules JAMAIS, ne changes JAMAIS le contenu. Retourne UNIQUEMENT le texte corrigé, rien d'autre.",
+    "storyPrompt": "Texte à corriger: \"{text}\"\n\nCORRIGE UNIQUEMENT:\n- Ponctuation manquante ou incorrecte (points, virgules, guillemets)\n- Espaces en trop ou manquants\n- Guillemets incorrects (\", ', «, »)\n- Fautes de frappe évidentes (lettres répétées, lettres manquantes)\n\nNE FAIS PAS:\n- Réécrire les phrases\n- Changer l'ordre des mots\n- Remplacer des mots par des synonymes\n- Ajouter ou retirer du contenu\n- Changer le style ou le ton\n\nRetourne UNIQUEMENT le texte minimalement corrigé. Si déjà correct, retourne exactement le même texte.",
+    "questionPrompt": "Texte: \"{text}\"\n\nCorrige UNIQUEMENT ponctuation, espaces et guillemets. Ne réécris PAS. Retourne le texte corrigé seulement.",
+    "wordPrompt": "Texte: \"{text}\"\n\nCorrige UNIQUEMENT ponctuation, espaces et guillemets. Ne réécris PAS. Retourne le texte corrigé seulement."
   }
 }

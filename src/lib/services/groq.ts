@@ -173,6 +173,116 @@ async function verifyTextQuality(params: {
 }
 
 /**
+ * Batch verify multiple texts at once to reduce API calls
+ */
+async function verifyTextsQuality(params: {
+  texts: string[];
+  language: string;
+  context: 'story' | 'question' | 'word';
+}): Promise<string[]> {
+  const { texts, language, context } = params;
+  
+  // Filter out very short texts and track their indices
+  const textsToVerify: Array<{ index: number; text: string }> = [];
+  texts.forEach((text, index) => {
+    if (text.length >= 10) {
+      textsToVerify.push({ index, text });
+    }
+  });
+  
+  // If no texts need verification, return originals
+  if (textsToVerify.length === 0) {
+    return texts;
+  }
+  
+  // Get localized messages
+  const t = getMessages(language).quality;
+  
+  // Get the appropriate prompt based on context
+  const promptTemplates = {
+    story: t.storyPrompt,
+    question: t.questionPrompt,
+    word: t.wordPrompt,
+  };
+  
+  // Format multiple texts with numbered markers
+  const batchText = textsToVerify
+    .map(({ index, text }) => `[${index}] ${text}`)
+    .join('\n\n');
+  
+  const prompt = `${promptTemplates[context].replace('{text}', batchText)}\n\nIMPORTANT: Return ALL corrected texts in the SAME numbered format: [0] text1\n\n[1] text2\n\netc.`;
+
+  try {
+    const completion = await groq.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: t.systemRole,
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      temperature: 0.05,
+      max_tokens: Math.ceil(batchText.length * 1.5),
+    });
+
+    const response = completion.choices[0]?.message?.content?.trim();
+    if (!response) {
+      return texts;
+    }
+
+    // Parse the numbered response
+    const correctedMap = new Map<number, string>();
+    const lines = response.split(/\n\n+/);
+    
+    for (const line of lines) {
+      const match = line.match(/^\[(\d+)\]\s*(.+)$/);
+      if (match) {
+        const index = parseInt(match[1], 10);
+        const correctedText = match[2].trim();
+        correctedMap.set(index, correctedText);
+      }
+    }
+    
+    // Apply corrections, keeping originals if not in map
+    const result = texts.map((original, index) => {
+      if (original.length < 10) {
+        return original; // Keep short texts as-is
+      }
+      
+      const corrected = correctedMap.get(index);
+      if (!corrected) {
+        return original;
+      }
+      
+      // Validate length ratio (80-120% to allow for minimal corrections)
+      const lengthRatio = corrected.length / original.length;
+      if (lengthRatio < 0.8 || lengthRatio > 1.2) {
+        console.warn(`[QUALITY] Text [${index}] correction rejected (${Math.round(lengthRatio * 100)}% size)`);
+        return original;
+      }
+      
+      // Log if correction was applied
+      if (corrected !== original) {
+        console.log(`[QUALITY] ✓ [${index}] Corrected: "${original.slice(0, 40)}..." → "${corrected.slice(0, 40)}..."`);
+      }
+      
+      return corrected;
+    });
+    
+    console.log(`[QUALITY] Batch processed ${textsToVerify.length} texts in one call`);
+    return result;
+    
+  } catch (error) {
+    console.error('[QUALITY] Error during batch text verification:', error);
+    return texts; // Return originals if verification fails
+  }
+}
+
+/**
  * Generate a story tailored to the user's reading level and interests
  */
 export async function generateStory(params: {
@@ -310,29 +420,27 @@ ${t.jsonFormat}
     }
 
     console.log(`[STORY] Generated: "${story.title}" (theme: ${chosenTheme}, seed: ${storySeed}, lang: ${language})`);
-    console.log('[STORY] Cleaning and verifying text quality...');
+    console.log('[STORY] Verifying text quality (batch)...');
 
-    // Clean and verify the story text
-    story.title = cleanGeneratedText(story.title);
-    story.title = await verifyTextQuality({ text: story.title, language, context: 'story' });
+    // Batch verify all story texts at once
+    const allStoryTexts = [story.title, ...story.paragraphs];
+    const correctedTexts = await verifyTextsQuality({
+      texts: allStoryTexts,
+      language,
+      context: 'story'
+    });
     
-    // Clean and verify each paragraph
-    story.paragraphs = await Promise.all(
-      story.paragraphs.map(async (paragraph) => {
-        const cleaned = cleanGeneratedText(paragraph);
-        return await verifyTextQuality({ text: cleaned, language, context: 'story' });
-      })
-    );
+    // Apply corrections
+    story.title = cleanGeneratedText(correctedTexts[0]);
+    story.paragraphs = correctedTexts.slice(1).map(cleanGeneratedText);
     
-    // Clean and verify vocabulary
+    // Clean vocabulary (no batch correction needed for short definitions)
     if (story.vocabulary && Array.isArray(story.vocabulary)) {
-      story.vocabulary = await Promise.all(
-        story.vocabulary.map(async (vocab) => ({
-          word: cleanGeneratedText(vocab.word),
-          definition: await verifyTextQuality({ text: cleanGeneratedText(vocab.definition), language, context: 'word' }),
-          example: await verifyTextQuality({ text: cleanGeneratedText(vocab.example), language, context: 'word' }),
-        }))
-      );
+      story.vocabulary = story.vocabulary.map((vocab) => ({
+        word: cleanGeneratedText(vocab.word),
+        definition: cleanGeneratedText(vocab.definition),
+        example: cleanGeneratedText(vocab.example),
+      }));
     }
 
     console.log('[STORY] Text quality verification complete');
@@ -451,30 +559,72 @@ Difficulty scale: 1 (easy) to 5 (expert)`;
       throw new Error('Invalid questions structure from Groq');
     }
 
-    console.log('[QUESTIONS] Cleaning and verifying questions quality...');
+    console.log('[QUESTIONS] Cleaning and verifying questions quality (batch)...');
 
-    // Validate, clean, and verify questions
-    const cleanedQuestions = await Promise.all(
-      result.questions.map(async (q: GeneratedQuestion, index: number) => {
-        const questionText = cleanGeneratedText(q.questionText || `Question ${index + 1}`);
-        const options = Array.isArray(q.options) 
-          ? q.options.slice(0, 4).map(opt => cleanGeneratedText(opt))
-          : ['Option A', 'Option B', 'Option C', 'Option D'];
-        const correctAnswer = cleanGeneratedText(q.correctAnswer || q.options?.[0] || 'Answer');
-        const explanation = cleanGeneratedText(q.explanation || t.defaultExplanation);
+    // Prepare all texts for batch verification
+    const textsToVerify: string[] = [];
+    const textIndices: Array<{ questionIndex: number; textType: 'question' | 'option' | 'answer' | 'explanation'; optionIndex?: number }> = [];
+    
+    const preparedQuestions = result.questions.map((q: GeneratedQuestion, index: number) => {
+      const questionText = cleanGeneratedText(q.questionText || `Question ${index + 1}`);
+      const options = Array.isArray(q.options) 
+        ? q.options.slice(0, 4).map(opt => cleanGeneratedText(opt))
+        : ['Option A', 'Option B', 'Option C', 'Option D'];
+      const correctAnswer = cleanGeneratedText(q.correctAnswer || q.options?.[0] || 'Answer');
+      const explanation = cleanGeneratedText(q.explanation || t.defaultExplanation);
 
-        return {
-          questionText: await verifyTextQuality({ text: questionText, language, context: 'question' }),
-          type: validateQuestionType(q.type),
-          options: await Promise.all(options.map(opt => verifyTextQuality({ text: opt, language, context: 'question' }))),
-          correctAnswer: await verifyTextQuality({ text: correctAnswer, language, context: 'question' }),
-          correctIndex: typeof q.correctIndex === 'number' ? q.correctIndex : 0,
-          explanation: await verifyTextQuality({ text: explanation, language, context: 'question' }),
-          difficulty: Math.min(5, Math.max(1, q.difficulty || 1)),
-          afterParagraph: Math.min(story.paragraphs.length - 1, Math.max(0, q.afterParagraph || index)),
-        };
-      })
-    );
+      // Track indices for mapping back corrections
+      textsToVerify.push(questionText);
+      textIndices.push({ questionIndex: index, textType: 'question' });
+      
+      options.forEach((opt, optIndex) => {
+        textsToVerify.push(opt);
+        textIndices.push({ questionIndex: index, textType: 'option', optionIndex: optIndex });
+      });
+      
+      textsToVerify.push(correctAnswer);
+      textIndices.push({ questionIndex: index, textType: 'answer' });
+      
+      textsToVerify.push(explanation);
+      textIndices.push({ questionIndex: index, textType: 'explanation' });
+
+      return {
+        questionText,
+        type: validateQuestionType(q.type),
+        options,
+        correctAnswer,
+        correctIndex: typeof q.correctIndex === 'number' ? q.correctIndex : 0,
+        explanation,
+        difficulty: Math.min(5, Math.max(1, q.difficulty || 1)),
+        afterParagraph: Math.min(story.paragraphs.length - 1, Math.max(0, q.afterParagraph || index)),
+      };
+    });
+
+    // Batch verify all question texts at once
+    const correctedTexts = await verifyTextsQuality({
+      texts: textsToVerify,
+      language,
+      context: 'question'
+    });
+
+    // Map corrections back to questions
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cleanedQuestions = preparedQuestions.map((q: any) => ({ ...q, options: [...q.options] }));
+    
+    textIndices.forEach((indexInfo, i) => {
+      const corrected = correctedTexts[i];
+      const q = cleanedQuestions[indexInfo.questionIndex];
+      
+      if (indexInfo.textType === 'question') {
+        q.questionText = corrected;
+      } else if (indexInfo.textType === 'option' && indexInfo.optionIndex !== undefined) {
+        q.options[indexInfo.optionIndex] = corrected;
+      } else if (indexInfo.textType === 'answer') {
+        q.correctAnswer = corrected;
+      } else if (indexInfo.textType === 'explanation') {
+        q.explanation = corrected;
+      }
+    });
 
     console.log('[QUESTIONS] Text quality verification complete');
     
