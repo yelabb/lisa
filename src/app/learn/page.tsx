@@ -703,30 +703,22 @@ export default function LearnPage() {
           className="relative flex-1 flex w-full"
           style={{ maxWidth: `${readingWidth}px` }}
         >
-          {/* Left click zone */}
+          {/* Left click zone - Full left half like Kobo */}
           {!isQuestion && !isCompleted && !showFeedbackStep && currentIndex > 0 && selectedAnswer === null && (
             <button
               onClick={previousItem}
-              className={`absolute left-0 top-0 bottom-0 w-1/4 ${themeStyles.hoverBg} transition-colors cursor-pointer z-10 group -ml-8`}
-              aria-label="Previous"
-            >
-              <div className={`absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-40 transition-opacity`}>
-                <ChevronLeft size={24} className={themeStyles.textMuted} />
-              </div>
-            </button>
+              className="absolute left-0 top-0 bottom-0 w-1/2 cursor-pointer z-10"
+              aria-label="Previous page"
+            />
           )}
 
-          {/* Right click zone */}
+          {/* Right click zone - Full right half like Kobo */}
           {!isQuestion && !isCompleted && !showFeedbackStep && currentIndex < story.content.length - 1 && selectedAnswer === null && (
             <button
               onClick={nextItem}
-              className={`absolute right-0 top-0 bottom-0 w-1/4 ${themeStyles.hoverBg} transition-colors cursor-pointer z-10 group -mr-8`}
-              aria-label="Next"
-            >
-              <div className={`absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-40 transition-opacity`}>
-                <ChevronRight size={24} className={themeStyles.textMuted} />
-              </div>
-            </button>
+              className="absolute right-0 top-0 bottom-0 w-1/2 cursor-pointer z-10"
+              aria-label="Next page"
+            />
           )}
 
           {/* Content */}
