@@ -10,7 +10,7 @@ import { useUserProgressStore, useReadingSessionStore, useReadingSettingsStore, 
 import { useGenerateStory, useAnswerQuestion, useCompleteStory, useStartSession } from '@/hooks';
 import { WelcomeScreen, LanguageSelect, ThemeSelect, ReadyScreen } from '@/components/onboarding';
 import { SettingsDialog } from '@/components/settings';
-import { ReadingControls } from '@/components/reading';
+import { ReadingControls, ReadingCountdown } from '@/components/reading';
 import type { StoryQuestion } from '@/types';
 
 // Types for dynamic word explanations
@@ -79,6 +79,7 @@ export default function LearnPage() {
   // Onboarding state
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('welcome');
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  const [showCountdown, setShowCountdown] = useState(false); // Afficher le countdown avant de commencer
 
   // API hooks
   const generateStory = useGenerateStory();
@@ -159,6 +160,9 @@ export default function LearnPage() {
         setOnboardingStep(step);
       });
     }
+    
+    // Si l'utilisateur a déjà complété l'onboarding, on doit quand même afficher l'écran Ready
+    // donc isReadyToStart reste false par défaut
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasCompletedOnboarding, language]);
 
@@ -182,10 +186,14 @@ export default function LearnPage() {
     setPreferences(selectedThemes, []);
     markOnboardingComplete();
     setOnboardingStep('complete');
+    // Afficher le countdown d'abord
+    setShowCountdown(true);
+    // Puis lancer la génération de l'histoire (avec pause)
+    loadNewStory(undefined, true);
   };
 
   // Load story when user is ready
-  const loadNewStory = useCallback(async (excludeStoryId?: string) => {
+  const loadNewStory = useCallback(async (excludeStoryId?: string, shouldShowCountdown = false) => {
     if (!progress) return;
 
     setLisaState('thinking', tStory('generating'));
@@ -232,6 +240,15 @@ export default function LearnPage() {
       const session = await startSessionMutation.mutateAsync(result.story.id);
       setSessionId(session.id);
       startSession(session.id);
+      
+      // Si le countdown doit être affiché, mettre en pause immédiatement après le startSession
+      if (shouldShowCountdown) {
+        queueMicrotask(() => {
+          if (!isPaused) {
+            togglePause();
+          }
+        });
+      }
 
       setLisaState('reading', tStory('letsRead'));
       
@@ -249,15 +266,16 @@ export default function LearnPage() {
   // Track if initial load has been triggered
   const hasTriggeredLoadRef = useRef(false);
 
+  // Pour les utilisateurs qui reviennent (onboarding déjà fait), charger l'histoire automatiquement
   useEffect(() => {
-    if (userId && progress && !story && !generateStory.isPending && !hasTriggeredLoadRef.current && onboardingStep === 'complete') {
+    if (userId && progress && !story && !generateStory.isPending && !hasTriggeredLoadRef.current && onboardingStep === 'complete' && hasCompletedOnboarding) {
       hasTriggeredLoadRef.current = true;
-      // Defer to avoid synchronous setState in effect
       queueMicrotask(() => {
-        loadNewStory();
+        setShowCountdown(true);
+        loadNewStory(undefined, true);
       });
     }
-  }, [userId, progress, story, generateStory.isPending, loadNewStory, onboardingStep]);
+  }, [userId, progress, story, generateStory.isPending, loadNewStory, onboardingStep, hasCompletedOnboarding]);
 
   // Handle story completion
   const handleStoryComplete = useCallback(async () => {
@@ -557,7 +575,9 @@ export default function LearnPage() {
     setIsCompleted(false);
     setShowFeedbackStep(null);
     hasTriggeredLoadRef.current = false;
-    loadNewStory(currentStoryId); // Toujours générer une nouvelle histoire
+    // Afficher le countdown et lancer la génération (avec pause)
+    setShowCountdown(true);
+    loadNewStory(currentStoryId, true);
   };
 
   // Render word - ALL words are now clickable
@@ -729,7 +749,20 @@ export default function LearnPage() {
 
   return (
     <>
-    <div className={`h-screen ${themeStyles.backgroundGradient} flex flex-col transition-colors duration-500 overflow-y-auto`}>
+    {/* Reading countdown modal - overlay par-dessus le contenu */}
+    <ReadingCountdown 
+      isOpen={showCountdown && !generateStory.isPending && !!story}
+      onComplete={() => {
+        setShowCountdown(false);
+        // Démarrer la lecture (enlever la pause)
+        if (isPaused) {
+          togglePause();
+        }
+      }}
+      language={language || 'fr'}
+    />
+
+    <div className={`h-screen ${themeStyles.backgroundGradient} flex flex-col transition-all duration-700 ease-out overflow-y-auto ${showCountdown ? 'blur-sm scale-[0.98] brightness-75 pointer-events-none' : 'blur-0 scale-100 brightness-100'}`}>
       {/* Barre de progression linéaire en haut - style Kobo */}
       <div className={`fixed top-0 left-0 right-0 z-40 h-0.5 ${themeStyles.background}`}>
         <motion.div 
