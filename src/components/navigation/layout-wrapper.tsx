@@ -6,11 +6,9 @@ import { ReactNode } from 'react';
 export function LayoutWrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   
-  // All pages have padding for bottom nav
-  const paddingClass = 'pb-16';
-  
+  // All pages have padding for bottom nav with matching dark background
   return (
-    <div className={paddingClass}>
+    <div className="min-h-screen pb-16 bg-[#242424]">
       {children}
     </div>
   );

@@ -12,11 +12,13 @@ export function BottomNav() {
   const tNav = useTranslations('navigation');
   const { theme: readingTheme } = useReadingSettingsStore();
   const themeStyles = getThemeStyles(readingTheme);
-  const { story } = useReadingSessionStore();
+  const { story, lisaState } = useReadingSessionStore();
 
-  // Hide on learn page when story is active (not completed)
+  // Hide on learn page when story is active and not completed
+  // Show menu when story is completed (lisaState is 'celebration' or 'success')
   const isOnLearnPage = pathname === '/learn';
-  const shouldHide = isOnLearnPage && story;
+  const isStoryCompleted = lisaState === 'celebration' || lisaState === 'success';
+  const shouldHide = isOnLearnPage && story && !isStoryCompleted;
 
   const navItems = [
     {
