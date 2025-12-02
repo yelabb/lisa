@@ -33,6 +33,10 @@ const merriweather = Merriweather({
 export const metadata: Metadata = {
   title: "Lisa - AI Reading Assistant",
   description: "Learn to read with joy - AI-powered reading assistant for children",
+  icons: {
+    icon: "/lisa-icon-min-300.png",
+    apple: "/lisa-icon-min-300.png",
+  },
 };
 
 export default async function RootLayout({
