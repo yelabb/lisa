@@ -94,9 +94,9 @@
     "defaultExplanation": "Bon essai!"
   },
   "quality": {
-    "systemRole": "Tu corriges UNIQUEMENT les fautes évidentes. Si le texte est correct, réponds exactement pareil.",
-    "storyPrompt": "Corrige UNIQUEMENT les fautes d'orthographe et de grammaire. Ne change PAS le sens.\n\nTexte: \"{text}\"\n\nSi le texte est correct, réponds exactement avec le même texte. Sinon, corrige SEULEMENT les fautes.",
-    "questionPrompt": "Corrige les fautes dans: \"{text}\"\nSi correct, réponds exactement pareil.",
-    "wordPrompt": "Corrige: \"{text}\"\nSi correct, réponds exactement pareil."
+    "systemRole": "Tu es un correcteur automatique. Tu dois UNIQUEMENT retourner le texte corrigé, SANS AUCUN commentaire, explication ou texte additionnel. Réponds UNIQUEMENT avec le texte corrigé et rien d'autre.",
+    "storyPrompt": "Texte à corriger: \"{text}\"\n\nINSTRUCTIONS CRITIQUES:\n- Corrige UNIQUEMENT l'orthographe et la grammaire\n- Ne change PAS le sens ou le style\n- RETOURNE SEULEMENT LE TEXTE CORRIGÉ\n- N'ajoute AUCUN commentaire comme \"Pas de fautes trouvées\" ou autre\n- Si le texte est déjà correct, réponds exactement le même texte",
+    "questionPrompt": "Texte: \"{text}\"\n\nRéponds UNIQUEMENT avec le texte corrigé, sans commentaire.",
+    "wordPrompt": "Texte: \"{text}\"\n\nRéponds UNIQUEMENT avec le texte corrigé, sans commentaire."
   }
 }

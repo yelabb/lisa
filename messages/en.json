@@ -94,9 +94,9 @@
     "defaultExplanation": "Good try!"
   },
   "quality": {
-    "systemRole": "You fix ONLY obvious errors. If text is correct, respond exactly the same.",
-    "storyPrompt": "Correct ONLY spelling and grammar errors. Do NOT change the meaning.\n\nText: \"{text}\"\n\nIf correct, respond with the exact same text. Otherwise, fix ONLY errors.",
-    "questionPrompt": "Fix errors in: \"{text}\"\nIf correct, respond exactly the same.",
-    "wordPrompt": "Correct: \"{text}\"\nIf correct, respond exactly the same."
+    "systemRole": "You are an automatic proofreader. You must ONLY return the corrected text, WITHOUT ANY comments, explanations or additional text. Respond ONLY with the corrected text and nothing else.",
+    "storyPrompt": "Text to correct: \"{text}\"\n\nCRITICAL INSTRUCTIONS:\n- Correct ONLY spelling and grammar\n- Do NOT change the meaning or style\n- RETURN ONLY THE CORRECTED TEXT\n- Do NOT add ANY comments like \"No errors found\" or anything else\n- If text is already correct, respond with the exact same text",
+    "questionPrompt": "Text: \"{text}\"\n\nRespond ONLY with the corrected text, no comments.",
+    "wordPrompt": "Text: \"{text}\"\n\nRespond ONLY with the corrected text, no comments."
   }
 }
