@@ -859,14 +859,14 @@ export default function LearnPage() {
 
       {/* Zone de lecture principale - Style e-reader */}
       <div 
-        className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-12 pb-32 min-h-full"
+        className="flex-1 flex flex-col items-center px-4 sm:px-8 pt-16 pb-32"
         style={{ maxWidth: `${readingWidth + 100}px`, margin: '0 auto', width: '100%' }}
       >
         {/* Header du livre */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full text-center mb-8 sm:mb-12"
+          className="w-full text-center mb-8 sm:mb-12 shrink-0"
         >
           <h1 className={`text-lg sm:text-xl font-medium tracking-wide ${themeStyles.text} ${fontClass}`}>
             {story.title}
@@ -914,7 +914,7 @@ export default function LearnPage() {
           )}
 
           {/* Content */}
-          <div className="flex-1 relative z-20 pointer-events-none flex items-center justify-center">
+          <div className="flex-1 relative z-20 pointer-events-none flex items-start justify-center">
             <div className="pointer-events-auto w-full">
               <AnimatePresence mode="wait">
                 {/* Text paragraph - Style livre/e-reader */}
