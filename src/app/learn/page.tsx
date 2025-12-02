@@ -271,8 +271,9 @@ export default function LearnPage() {
     const difficultyFactor = progress?.difficultyMultiplier || 1.0;
     const speedAdjustment = 1 / difficultyFactor; // 0.5 -> 2x plus lent, 2.0 -> 2x plus rapide
     
-    const baseTime = wordCount * msPerWord * speedAdjustment;
-    return Math.max(3000, Math.min(30000, baseTime));
+    // Multiplier par 1.5 pour donner plus de temps de lecture confortable
+    const baseTime = wordCount * msPerWord * speedAdjustment * 1.5;
+    return Math.max(4000, Math.min(45000, baseTime));
   }, [readingSpeed, progress?.difficultyMultiplier]);
 
   // Refs to avoid effect re-running

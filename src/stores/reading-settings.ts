@@ -45,7 +45,7 @@ const DEFAULT_SETTINGS: ReadingSettings = {
   readingWidth: 650, // Largeur optimale pour lecture
   brightness: 100,
   autoProgress: true,
-  readingSpeed: 150, // mots par minute (enfants)
+  readingSpeed: 100, // mots par minute (enfants - réduit pour lecture confortable)
 };
 
 export const useReadingSettingsStore = create<ReadingSettingsStore>()(
