@@ -1,241 +1,360 @@
-﻿# Lisa - AI-Powered Reading Assistant for Children
+<div align="center">
+  <h1>📚 Lisa</h1>
+  <p><strong>AI-Powered Reading Companion for Young Learners</strong></p>
+  <p>
+    <a href="#-features">Features</a> •
+    <a href="#-quick-start">Quick Start</a> •
+    <a href="#-tech-stack">Tech Stack</a> •
+    <a href="#-contributing">Contributing</a>
+  </p>
+</div>
 
-Lisa is an AI-powered learning platform that helps children improve their reading comprehension and summarization skills through personalized story generation and adaptive questioning — similar to Duolingo but focused on reading literacy.
+---
 
-## ✨ Philosophy
+## 🌟 Overview
 
-- **Single-Screen Experience** - Focused learning without distractions
-- **Natural Reading Flow** - Stories unfold progressively with smooth animations
-- **Integrated Questions** - Comprehension questions naturally woven into reading
-- **Contextual Hints** - Word definitions on click, non-intrusive
-- **No Judgment** - Background analysis, positive feedback only
-- **Minimalist Design** - Clean Apple/Vercel-style interface
+**Lisa** is an open-source, AI-powered learning platform designed to help children aged 5-12 develop stronger reading comprehension skills through personalized, adaptive storytelling. Think of it as "Duolingo for reading literacy" – combining engaging narratives with intelligent assessment to create a natural, judgment-free learning experience.
 
-## 🎯 Core Features
+### Why Lisa?
 
-- **AI Story Generation** - Groq-powered stories tailored to reading level and interests
-- **Adaptive Questions** - Comprehension, vocabulary, inference, and summarization questions
-- **Progress Tracking** - Skill assessment with automatic difficulty adjustment
-- **Offline-First** - localStorage-based user data (no authentication required)
-- **Child-Friendly UI** - Engaging, accessible interface with progress visualization
-- **Lisa Companion** - Animated helper character with contextual hints and encouragement
+Reading comprehension is foundational to all learning, yet traditional approaches can feel dry or intimidating. Lisa creates a safe, engaging environment where:
 
-## 🛠️ Tech Stack
+- 📖 **Stories adapt** to each child's reading level and interests
+- 🤖 **AI generates** fresh, personalized content on-demand
+- 💡 **Questions flow naturally** into the reading experience
+- 📈 **Progress tracking** guides adaptive difficulty
+- 🎨 **Minimalist design** keeps focus on content, not distractions
 
-### Frontend
-- **Next.js 15** (App Router)
-- **React 19** with TypeScript
-- **Tailwind CSS v4**
-- **Framer Motion** for smooth animations
-- **shadcn/ui** components
-- **Zustand** for state management
-- **TanStack React Query** for data fetching
+## ✨ Features
 
-### Backend
-- **Next.js API Routes**
-- **Prisma ORM** with generated client
-- **Neon PostgreSQL** (serverless)
-- **Groq AI API** for content generation
+### 🎯 Core Learning Experience
 
-### Storage
-- **localStorage** for user profiles and progress
-- **PostgreSQL** for stories cache and content library
+- **Adaptive Story Generation**: Leverages AI to create personalized stories based on reading level, themes, and interests
+- **Progressive Reading Flow**: Paragraphs appear one at a time with smooth animations to maintain focus
+- **Integrated Comprehension Questions**: Multiple choice, true/false, vocabulary, and inference questions woven naturally into stories
+- **Contextual Vocabulary Hints**: Click underlined words for instant definitions and examples
+
+### 📊 Progress & Personalization
+
+- **6-Level Reading System**: From Beginner (ages 5-6) to Proficient (ages 10+)
+- **Granular Skill Tracking**: Monitors comprehension, vocabulary, inference, and summarization
+- **Adaptive Difficulty**: Automatically adjusts story complexity based on performance
+- **Theme Customization**: Choose from preset themes or create custom ones
+- **Offline-First Architecture**: No login required – progress stored locally for privacy
+
+### 🎨 Design Philosophy
+
+- **Distraction-Free Interface**: Clean, minimalist design inspired by Apple and Vercel
+- **Child-Friendly UX**: Large touch targets, clear feedback, and encouraging language
+- **Smooth Animations**: Framer Motion for polished, delightful interactions
+- **Accessibility-First**: Built with semantic HTML and ARIA best practices
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- Yarn or npm
-- PostgreSQL database (or Neon account)
-- Groq API key
+
+- **Node.js** 18.x or higher
+- **Package Manager**: npm, yarn, or pnpm
+- **Database**: PostgreSQL (local or [Neon](https://neon.tech) serverless)
+- **API Key**: [Groq API](https://console.groq.com) for AI story generation
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yelabb/lisa.git
+   cd lisa/lisa-next
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. **Configure environment variables**
+   
+   Create a `.env` file in the root directory:
+   ```env
+   # Database (Neon PostgreSQL recommended)
+   DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+   
+   # Groq AI API Key (get yours at https://console.groq.com)
+   GROQ_API_KEY="gsk_your_api_key_here"
+   ```
+
+4. **Set up the database**
+   ```bash
+   npx prisma generate
+   npx prisma migrate deploy
+   ```
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open your browser**
+   
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Production Deployment
+
+Lisa is optimized for deployment on **Vercel**:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yelabb/lisa)
+
+Or manually:
 ```bash
-git clone https://github.com/yelabb/lisa.git
-cd lisa/lisa-next
+npm run build
+npm start
 ```
 
-2. Install dependencies:
-```bash
-yarn install
-```
+**Environment Variables for Production:**
+- Set `DATABASE_URL` to your production PostgreSQL instance
+- Set `GROQ_API_KEY` for AI content generation
+- Optional: Configure `NODE_ENV=production`
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
+## 🛠️ Tech Stack
 
-Required environment variables:
-```env
-DATABASE_URL="postgresql://..."
-GROQ_API_KEY="gsk_..."
-```
+### Frontend
+| Technology | Purpose |
+|------------|---------|
+| [Next.js 15](https://nextjs.org/) | React framework with App Router |
+| [React 19](https://react.dev/) | UI library with TypeScript |
+| [Tailwind CSS v4](https://tailwindcss.com/) | Utility-first CSS framework |
+| [Framer Motion](https://www.framer.com/motion/) | Animation library |
+| [shadcn/ui](https://ui.shadcn.com/) | Accessible component library |
+| [Zustand](https://zustand-demo.pmnd.rs/) | Lightweight state management |
+| [TanStack Query](https://tanstack.com/query) | Data fetching and caching |
 
-4. Generate Prisma client and run migrations:
-```bash
-npx prisma generate
-npx prisma migrate dev
-```
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| [Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) | Serverless API endpoints |
+| [Prisma ORM](https://www.prisma.io/) | Type-safe database client |
+| [Neon PostgreSQL](https://neon.tech/) | Serverless Postgres database |
+| [Groq AI](https://groq.com/) | Fast LLM inference for content generation |
 
-5. Start the development server:
-```bash
-yarn dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+### Storage Architecture
+- **localStorage**: User profiles, preferences, and progress (privacy-first)
+- **PostgreSQL**: Story cache, content library, session history
 
 ## 📁 Project Structure
 
 ```
 lisa-next/
 ├── prisma/
-│   ├── schema.prisma      # Database schema
-│   └── migrations/        # Database migrations
+│   ├── schema.prisma           # Database schema with 5 models
+│   └── migrations/             # Version-controlled migrations
 ├── src/
 │   ├── app/
-│   │   ├── api/           # API routes
-│   │   │   ├── stories/   # Story generation endpoints
-│   │   │   └── progress/  # Progress tracking endpoints
-│   │   ├── learn/         # Main reading experience page
-│   │   ├── layout.tsx     # Global layout with providers
-│   │   ├── globals.css    # Global styles
-│   │   └── page.tsx       # Home (redirects to /learn)
+│   │   ├── api/
+│   │   │   ├── stories/generate/   # AI story generation endpoint
+│   │   │   ├── words/explain/      # Vocabulary definitions
+│   │   │   └── progress/           # Progress tracking & sessions
+│   │   ├── learn/                  # Main reading experience
+│   │   ├── layout.tsx              # Root layout with providers
+│   │   └── page.tsx                # Landing page
 │   ├── components/
-│   │   ├── ui/            # shadcn/ui components
-│   │   ├── lisa/          # Lisa companion components
-│   │   │   ├── lisa-companion.tsx  # Animated character
-│   │   │   ├── lisa-hints.tsx      # Contextual hints system
-│   │   │   └── lisa-loading.tsx    # Loading states
-│   │   └── error-boundary.tsx
-│   ├── generated/
-│   │   └── prisma/        # Generated Prisma client
-│   ├── hooks/             # React Query hooks
-│   │   ├── use-story.ts   # Story generation hooks
-│   │   └── use-progress.ts # Progress tracking hooks
+│   │   ├── ui/                     # shadcn/ui components
+│   │   ├── lisa/                   # Lisa companion & hints
+│   │   ├── onboarding/             # Onboarding flow
+│   │   ├── reading/                # Reading interface
+│   │   └── settings/               # Settings dialog
+│   ├── hooks/
+│   │   ├── use-story.ts            # Story generation hooks
+│   │   └── use-progress.ts         # Progress tracking hooks
 │   ├── lib/
-│   │   ├── constants.ts   # App constants and configuration
-│   │   ├── utils.ts       # Utility functions
-│   │   ├── db/            # Database utilities
-│   │   │   ├── prisma.ts  # Prisma client singleton
-│   │   │   ├── stories.ts # Story CRUD operations
-│   │   │   └── progress.ts # Progress tracking
-│   │   ├── services/      # External services
-│   │   │   └── groq.ts    # Groq AI story/question generation
-│   │   └── utils/
-│   │       └── error-handling.ts  # Rate limiting and retry logic
-│   ├── providers/         # React context providers
-│   │   └── query-provider.tsx  # React Query provider
-│   ├── stores/            # Zustand state stores
-│   │   ├── user-progress.ts    # User progress with localStorage
-│   │   └── reading-session.ts  # Current reading session
-│   └── types/             # TypeScript types
-│       └── index.ts       # Shared type definitions
-└── public/                # Static assets
+│   │   ├── db/                     # Database operations
+│   │   ├── services/groq.ts        # Groq AI integration
+│   │   └── utils/                  # Utility functions
+│   ├── stores/
+│   │   ├── user-progress.ts        # Progress state (localStorage)
+│   │   ├── reading-settings.ts     # Reading preferences
+│   │   └── reading-session.ts      # Active session state
+│   └── types/                      # TypeScript definitions
+└── public/                         # Static assets
 ```
 
-## 🔌 API Endpoints
+## 🔌 API Reference
 
 ### Story Generation
-- `POST /api/stories/generate` - Generate a new AI story with questions
-  - Body: `{ readingLevel, theme?, interests?, difficultyMultiplier? }`
-  - Returns: `{ story, cached }`
+
+**`POST /api/stories/generate`**
+
+Generate a personalized story with comprehension questions.
+
+```typescript
+// Request
+{
+  "readingLevel": "DEVELOPING",
+  "theme": "space-adventure",
+  "interests": ["rockets", "planets"],
+  "difficultyMultiplier": 1.0
+}
+
+// Response
+{
+  "story": {
+    "id": "...",
+    "title": "Journey to Mars",
+    "content": "...",
+    "paragraphs": [...],
+    "wordCount": 450
+  },
+  "questions": [...],
+  "cached": false
+}
+```
 
 ### Progress Tracking
-- `GET /api/progress?userId=xxx` - Get user progress
-- `PUT /api/progress` - Update preferences or complete onboarding
-- `POST /api/progress/session` - Track answers and session completion
 
-## 🎯 Features In Detail
+**`GET /api/progress?userId={id}`**
 
-### 📖 Progressive Reading
-- Paragraphs appear one at a time (5 seconds each)
-- Smooth fade-in animations with Framer Motion
-- Auto-progression with pause/play control
-- Click on screen sides for manual navigation
+Retrieve user progress and statistics.
 
-### �� Vocabulary Hints
-- Important words underlined with dotted border
-- Click to reveal elegant tooltip with definition and example
-- Non-intrusive, child-controlled
+**`PUT /api/progress`**
 
-### ❓ Comprehension Questions
-- Multiple question types: multiple choice, true/false, fill-in-blank, sequencing
-- Skills assessed: comprehension, vocabulary, inference, summarization
-- Difficulty levels: Easy, Medium, Hard
-- Gentle explanations after each answer
+Update user preferences or onboarding status.
 
-### 🎨 Lisa Companion
-- Animated character with multiple emotional states
-- Contextual messages during onboarding, reading, and questions
-- Encouraging feedback based on performance
-- States: idle, thinking, success, celebration, struggle, encouraging, reading, surprised
+**`POST /api/progress/session`**
 
-### 📊 Progress System
-- Six reading levels: Beginner → Early → Developing → Intermediate → Advanced → Proficient
-- Granular scoring (0-100) within each level
-- Skill tracking: comprehension, vocabulary, inference, summarization
-- Adaptive difficulty multiplier (0.5x - 2.0x)
-- Streak tracking and achievements
+Record a completed reading session with answers.
 
-## 🎨 Design Principles
+### Vocabulary
 
-- **Clean White Background** - Zero visual noise
-- **Light Typography** - font-weight: light for readability
-- **Neutral Colors** - Soft grays with purple accents
-- **Subtle Animations** - Framer Motion for polish
-- **Generous Spacing** - Visual breathing room
-- **Content Focus** - Nearly invisible interface
+**`POST /api/words/explain`**
 
-## 📝 Available Scripts
+Get definition and example for a vocabulary word.
 
-- `yarn dev` - Start development server
-- `yarn build` - Build for production
-- `yarn start` - Start production server
-- `yarn lint` - Run ESLint
+## 🎓 Educational Features
 
-## 🗄️ Database Schema
+### Reading Levels
 
-Key models:
-- **Story** - Cached AI-generated stories with reading level and theme
-- **Question** - Comprehension questions linked to stories
-- **UserProgress** - Tracks reading level, scores, and preferences
-- **ReadingSession** - Session metrics and history
-- **Answer** - User responses to questions
+Lisa uses a 6-tier reading level system aligned with common literacy frameworks:
 
-## 🚧 Roadmap
+| Level | Age Range | Grade | Characteristics |
+|-------|-----------|-------|-----------------|
+| **Beginner** | 5-6 | K-1st | Simple sentences, basic vocabulary |
+| **Early** | 6-7 | 1st-2nd | Short paragraphs, sight words |
+| **Developing** | 7-8 | 2nd-3rd | Longer stories, descriptive language |
+| **Intermediate** | 8-9 | 3rd-4th | Complex plots, varied vocabulary |
+| **Advanced** | 9-10 | 4th-5th | Nuanced themes, inference required |
+| **Proficient** | 10+ | 5th+ | Abstract concepts, literary devices |
 
-### Phase 1: Foundation (Current)
-- [x] Next.js project setup
-- [x] Prisma with Neon PostgreSQL
-- [x] Core UI layouts and components
-- [x] Lisa companion system
-- [x] Groq AI story generation integration
-- [x] Question generation system
-- [x] Progress tracking and leveling
+### Question Types
 
-### Phase 2: Enhanced Learning
-- [ ] Vocabulary builder with word definitions
-- [ ] Reading speed tracking
-- [ ] Audio narration with text highlighting
-- [ ] Achievement system and gamification
+- **Multiple Choice**: Test comprehension and recall
+- **True/False**: Quick fact verification
+- **Vocabulary**: Context-based word understanding
+- **Inference**: Reading between the lines
+- **Summarization**: Main idea identification
 
-### Phase 3: Content Library
-- [ ] Pre-generated story library by level
-- [ ] Story collections by theme
-- [ ] Character customization
-- [ ] Favorites and bookmarks
+### Skill Metrics
 
-### Phase 4: Social Features
-- [ ] Parent dashboard
-- [ ] Progress reports export
-- [ ] Multi-profile support
+Lisa tracks four core reading skills (0-100 scale):
+
+1. **Comprehension**: Understanding main ideas and details
+2. **Vocabulary**: Word recognition and usage
+3. **Inference**: Drawing conclusions from context
+4. **Summarization**: Identifying key themes
 
 ## 🤝 Contributing
 
-Contributions are welcome! This is an educational project aimed at improving children's reading skills.
+We welcome contributions from developers, educators, and designers! Lisa is built with the goal of improving children's literacy worldwide.
+
+### How to Contribute
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit your changes**: `git commit -m 'Add amazing feature'`
+4. **Push to the branch**: `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
+
+### Areas for Contribution
+
+- 🌍 **Internationalization**: Add support for more languages
+- 🎨 **UI/UX**: Improve accessibility and child-friendliness
+- 📚 **Content**: Pre-generate story libraries by theme
+- 🧪 **Testing**: Add unit and integration tests
+- 📖 **Documentation**: Improve guides and tutorials
+- 🐛 **Bug Fixes**: Help squash issues
+
+### Development Guidelines
+
+- Follow the existing code style (TypeScript + ESLint)
+- Write clear commit messages
+- Add comments for complex logic
+- Test thoroughly before submitting
+- Update documentation as needed
+
+## 📊 Roadmap
+
+### ✅ Phase 1: Foundation (Completed)
+- [x] Next.js 15 + React 19 setup
+- [x] Prisma ORM with PostgreSQL
+- [x] Groq AI integration for story generation
+- [x] Progressive reading interface
+- [x] Lisa companion system
+- [x] Adaptive progress tracking
+- [x] Onboarding flow
+
+### 🚧 Phase 2: Enhanced Learning (In Progress)
+- [ ] Audio narration with text highlighting
+- [ ] Reading speed tracking
+- [ ] Expanded vocabulary builder
+- [ ] Achievement system and badges
+- [ ] Multi-language support (Spanish, French)
+
+### 📅 Phase 3: Content Library (Planned)
+- [ ] Pre-generated story library (1000+ stories)
+- [ ] Story collections by theme and genre
+- [ ] Custom story creation tools
+- [ ] Favorites and bookmarking
+- [ ] Offline mode for cached stories
+
+### 🔮 Phase 4: Social Features (Future)
+- [ ] Parent dashboard with insights
+- [ ] Progress reports (PDF export)
+- [ ] Multi-child profiles
+- [ ] Teacher accounts with class management
+- [ ] Community-contributed stories
 
 ## 📄 License
 
-Educational project.
+This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
+
+You are free to:
+- ✅ Use Lisa commercially
+- ✅ Modify and distribute
+- ✅ Use privately
+- ✅ Include in other projects
+
+**Attribution appreciated but not required!**
+
+## 🙏 Acknowledgments
+
+- **Groq** for blazing-fast AI inference
+- **Vercel** for seamless deployment
+- **Neon** for serverless PostgreSQL
+- **shadcn** for beautiful UI components
+- The open-source community for inspiration and tools
+
+## 💬 Support & Community
+
+- **Issues**: [GitHub Issues](https://github.com/yelabb/lisa/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yelabb/lisa/discussions)
+- **Email**: [Contact us](mailto:support@lisa-app.com)
+
+---
+
+<div align="center">
+  <p>Built with ❤️ for children's literacy</p>
+  <p>
+    <a href="https://github.com/yelabb/lisa/stargazers">⭐ Star on GitHub</a> •
+    <a href="https://github.com/yelabb/lisa/fork">🍴 Fork</a> •
+    <a href="https://github.com/yelabb/lisa/issues/new">🐛 Report Bug</a>
+  </p>
+</div>
