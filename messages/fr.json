@@ -144,5 +144,46 @@
     "storyPrompt": "Texte à corriger: \"{text}\"\n\nCORRIGE UNIQUEMENT:\n- Ponctuation manquante ou incorrecte (points, virgules, guillemets)\n- Espaces en trop ou manquants\n- Guillemets incorrects (\", ', «, »)\n- Fautes de frappe évidentes (lettres répétées, lettres manquantes)\n\nNE FAIS PAS:\n- Réécrire les phrases\n- Changer l'ordre des mots\n- Remplacer des mots par des synonymes\n- Ajouter ou retirer du contenu\n- Changer le style ou le ton\n\nRetourne UNIQUEMENT le texte minimalement corrigé. Si déjà correct, retourne exactement le même texte.",
     "questionPrompt": "Texte: \"{text}\"\n\nCorrige UNIQUEMENT ponctuation, espaces et guillemets. Ne réécris PAS. Retourne le texte corrigé seulement.",
     "wordPrompt": "Texte: \"{text}\"\n\nCorrige UNIQUEMENT ponctuation, espaces et guillemets. Ne réécris PAS. Retourne le texte corrigé seulement."
+  },
+  "stats": {
+    "title": "Mes Statistiques",
+    "subtitle": "Suis tes progrès et tes réalisations",
+    "storiesRead": "Histoires lues",
+    "wordsRead": "Mots lus",
+    "accuracy": "Précision",
+    "readingTime": "Temps de lecture",
+    "currentStreak": "Série actuelle",
+    "bestStreak": "Meilleure série",
+    "weeklyActivity": "Activité de la semaine",
+    "levelProgress": "Progression du niveau",
+    "level": "Niveau",
+    "levelHint": "Continue à lire pour débloquer de nouvelles histoires !",
+    "noStatsYet": "Pas encore de statistiques",
+    "startReadingToSeeStats": "Lis ta première histoire pour voir tes statistiques !",
+    "startReading": "Commencer à lire"
+  },
+  "bookshelf": {
+    "title": "Ma Bibliothèque",
+    "subtitle": "{count} histoires terminées",
+    "search": "Rechercher une histoire...",
+    "filterAll": "Toutes",
+    "filterWeek": "Cette semaine",
+    "filterMonth": "Ce mois",
+    "sortRecent": "Plus récentes",
+    "sortOldest": "Plus anciennes",
+    "sortTitle": "Titre",
+    "sortAccuracy": "Précision",
+    "noResults": "Aucune histoire trouvée",
+    "trySearch": "Essaie une autre recherche",
+    "emptyShelf": "Ta bibliothèque est vide",
+    "startReading": "Commence à lire pour remplir ta bibliothèque !",
+    "questions": "Questions",
+    "time": "Temps",
+    "themes": "Thèmes"
+  },
+  "navigation": {
+    "read": "Lire",
+    "stats": "Statistiques",
+    "bookshelf": "Bibliothèque"
   }
 }

@@ -39,7 +39,8 @@ export default function LearnPage() {
     initializeUser, 
     setLanguage,
     setPreferences,
-    completeOnboarding: markOnboardingComplete 
+    completeOnboarding: markOnboardingComplete,
+    addCompletedStory 
   } = useUserProgressStore();
   const {
     story,
@@ -265,6 +266,17 @@ export default function LearnPage() {
     setIsCompleted(true);
     const stats = completeSession();
     
+    // Add to completed stories in bookshelf
+    addCompletedStory({
+      id: story.id,
+      title: story.title,
+      readingTime: stats.readingTimeSeconds,
+      questionsAttempted: stats.questionsAttempted,
+      questionsCorrect: stats.questionsCorrect,
+      themes: [story.theme],
+      wordCount: story.wordCount,
+    });
+    
     // Send to server
     await completeStoryMutation.mutateAsync({
       storyId: story.id,
@@ -280,7 +292,7 @@ export default function LearnPage() {
         ? tFeedback('amazingWork')
         : tFeedback('greatEffort')
     );
-  }, [story, isCompleted, completeSession, completeStoryMutation, sessionId, setLisaState, tFeedback]);
+  }, [story, isCompleted, completeSession, addCompletedStory, completeStoryMutation, sessionId, setLisaState, tFeedback]);
 
   // Calculate reading time based on word count and user's reading speed
   const calculateReadingTime = useCallback((text: string) => {
@@ -717,7 +729,7 @@ export default function LearnPage() {
 
   return (
     <>
-    <div className={`min-h-screen ${themeStyles.backgroundGradient} flex flex-col transition-colors duration-500`}>
+    <div className={`h-screen ${themeStyles.backgroundGradient} flex flex-col transition-colors duration-500 overflow-y-auto`}>
       {/* Barre de progression linéaire en haut - style Kobo */}
       <div className={`fixed top-0 left-0 right-0 z-40 h-0.5 ${themeStyles.background}`}>
         <motion.div 
@@ -814,7 +826,7 @@ export default function LearnPage() {
 
       {/* Zone de lecture principale - Style e-reader */}
       <div 
-        className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-12 pb-20"
+        className="flex-1 flex flex-col items-center justify-center px-4 sm:px-8 pt-12 pb-32 min-h-full"
         style={{ maxWidth: `${readingWidth + 100}px`, margin: '0 auto', width: '100%' }}
       >
         {/* Header du livre */}
@@ -1308,15 +1320,15 @@ export default function LearnPage() {
       </div>
     </div>
 
-    {/* Footer minimaliste - Navigation controls - VRAIMENT fixe, hors de tous les conteneurs */}
+    {/* Footer minimaliste - Navigation controls - Au-dessus de la barre de navigation */}
     {!isCompleted && !showFeedbackStep && story && currentIndex < story.content.length && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className={`fixed bottom-0 left-0 right-0 z-50 ${themeStyles.overlayBg} backdrop-blur-sm border-t ${themeStyles.border}`}
+        className={`fixed bottom-20 left-0 right-0 z-50 ${themeStyles.overlayBg} backdrop-blur-md`}
       >
-        <div className="w-full max-w-2xl mx-auto px-4 py-3">
+        <div className="w-full max-w-2xl mx-auto px-4 py-1">
           {/* Navigation buttons - Plus petits et plus discrets comme Kobo */}
           <div className={`flex items-center justify-center gap-3 transition-opacity ${
             selectedAnswer !== null ? 'opacity-40 pointer-events-none' : 'opacity-100'
@@ -1326,14 +1338,14 @@ export default function LearnPage() {
               disabled={currentIndex === 0 || selectedAnswer !== null}
               whileHover={{ scale: currentIndex > 0 && selectedAnswer === null ? 1.05 : 1 }}
               whileTap={{ scale: currentIndex > 0 && selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
                 currentIndex > 0 && selectedAnswer === null
                   ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
                   : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
               }`}
               aria-label="Précédent"
             >
-              <ChevronLeft size={20} strokeWidth={2} />
+              <ChevronLeft size={24} strokeWidth={2} />
             </motion.button>
 
             {/* Pause button with progress circle */}
@@ -1386,14 +1398,14 @@ export default function LearnPage() {
               disabled={currentIndex >= story.content.length - 1 || selectedAnswer !== null}
               whileHover={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 1.05 : 1 }}
               whileTap={{ scale: currentIndex < story.content.length - 1 && selectedAnswer === null ? 0.95 : 1 }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
                 currentIndex < story.content.length - 1 && selectedAnswer === null
                   ? `${themeStyles.cardBg} ${themeStyles.hoverBg} ${themeStyles.text} border ${themeStyles.border}`
                   : `${readingTheme === 'dark' ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300'} cursor-not-allowed`
               }`}
               aria-label="Suivant"
             >
-              <ChevronRight size={20} strokeWidth={2} />
+              <ChevronRight size={24} strokeWidth={2} />
             </motion.button>
           </div>
         </div>

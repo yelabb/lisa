@@ -144,5 +144,46 @@
     "storyPrompt": "Text to correct: \"{text}\"\n\nFIX ONLY:\n- Missing or wrong punctuation (periods, commas, quotes)\n- Extra or missing spaces\n- Incorrect quote marks (\", ', «, »)\n- Obvious typos (repeated letters, missing letters)\n\nDO NOT:\n- Rewrite sentences\n- Change word order\n- Replace words with synonyms\n- Add or remove content\n- Change the style or tone\n\nReturn ONLY the minimally corrected text. If already correct, return the exact same text.",
     "questionPrompt": "Text: \"{text}\"\n\nFix ONLY punctuation, spacing, and quotes. Do NOT rewrite. Return the corrected text only.",
     "wordPrompt": "Text: \"{text}\"\n\nFix ONLY punctuation, spacing, and quotes. Do NOT rewrite. Return the corrected text only."
+  },
+  "stats": {
+    "title": "My Statistics",
+    "subtitle": "Track your progress and achievements",
+    "storiesRead": "Stories read",
+    "wordsRead": "Words read",
+    "accuracy": "Accuracy",
+    "readingTime": "Reading time",
+    "currentStreak": "Current streak",
+    "bestStreak": "Best streak",
+    "weeklyActivity": "Weekly activity",
+    "levelProgress": "Level progress",
+    "level": "Level",
+    "levelHint": "Keep reading to unlock new stories!",
+    "noStatsYet": "No stats yet",
+    "startReadingToSeeStats": "Read your first story to see your stats!",
+    "startReading": "Start reading"
+  },
+  "bookshelf": {
+    "title": "My Bookshelf",
+    "subtitle": "{count} completed stories",
+    "search": "Search for a story...",
+    "filterAll": "All",
+    "filterWeek": "This week",
+    "filterMonth": "This month",
+    "sortRecent": "Most recent",
+    "sortOldest": "Oldest",
+    "sortTitle": "Title",
+    "sortAccuracy": "Accuracy",
+    "noResults": "No stories found",
+    "trySearch": "Try a different search",
+    "emptyShelf": "Your bookshelf is empty",
+    "startReading": "Start reading to fill your bookshelf!",
+    "questions": "Questions",
+    "time": "Time",
+    "themes": "Themes"
+  },
+  "navigation": {
+    "read": "Read",
+    "stats": "Statistics",
+    "bookshelf": "Bookshelf"
   }
 }

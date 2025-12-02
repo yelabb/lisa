@@ -115,6 +115,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
+  html, body {
+    @apply h-full w-full;
+  }
+  
   body {
     @apply bg-white text-gray-900 antialiased;
   }

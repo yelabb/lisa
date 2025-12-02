@@ -20,6 +20,8 @@ const DEFAULT_PROGRESS: Omit<UserProgress, 'id' | 'createdAt' | 'updatedAt'> = {
   totalStoriesRead: 0,
   totalQuestionsAnswered: 0,
   correctAnswers: 0,
+  totalWordsRead: 0,
+  totalReadingTime: 0,
   skills: DEFAULT_SKILLS,
   difficultyMultiplier: 1.0,
   preferredThemes: [],
@@ -29,6 +31,7 @@ const DEFAULT_PROGRESS: Omit<UserProgress, 'id' | 'createdAt' | 'updatedAt'> = {
   longestStreak: 0,
   lastActiveDate: null,
   hasCompletedOnboarding: false,
+  completedStories: [],
 };
 
 interface UserProgressState {
@@ -54,6 +57,7 @@ interface UserProgressState {
   completeOnboarding: () => void;
   updateStreak: () => void;
   adjustDifficulty: (accuracy: number) => void;
+  addCompletedStory: (story: { id: string; title: string; readingTime: number; questionsAttempted: number; questionsCorrect: number; themes: string[]; wordCount: number }) => void;
   syncWithServer: () => Promise<void>;
   reset: () => void;
 }
@@ -79,13 +83,29 @@ export const useUserProgressStore = create<UserProgressState>()(
         
         // Create default progress if not exists
         const now = new Date().toISOString();
-        const newProgress: UserProgress = progress || {
-          ...DEFAULT_PROGRESS,
-          id: `progress_${newUserId}`,
-          userId: newUserId,
-          createdAt: now,
-          updatedAt: now,
-        };
+        let newProgress: UserProgress;
+        
+        if (progress) {
+          // Migrate existing progress to add new fields
+          newProgress = {
+            ...DEFAULT_PROGRESS,
+            ...progress,
+            // Ensure new fields exist with defaults if not present
+            totalWordsRead: progress.totalWordsRead ?? 0,
+            totalReadingTime: progress.totalReadingTime ?? 0,
+            completedStories: progress.completedStories ?? [],
+            updatedAt: now,
+          };
+        } else {
+          // Create new progress
+          newProgress = {
+            ...DEFAULT_PROGRESS,
+            id: `progress_${newUserId}`,
+            userId: newUserId,
+            createdAt: now,
+            updatedAt: now,
+          };
+        }
 
         set({
           userId: newUserId,
@@ -263,7 +283,6 @@ export const useUserProgressStore = create<UserProgressState>()(
           },
         });
       },
-
       // Adjust difficulty based on recent performance
       adjustDifficulty: (accuracy) => {
         const { progress } = get();
@@ -290,6 +309,46 @@ export const useUserProgressStore = create<UserProgressState>()(
         }
       },
 
+      // Add a completed story to the bookshelf
+      addCompletedStory: (story) => {
+        const { progress } = get();
+        if (!progress) return;
+
+        const accuracy = story.questionsAttempted > 0 
+          ? story.questionsCorrect / story.questionsAttempted 
+          : 0;
+
+        const completedStory = {
+          id: story.id,
+          title: story.title,
+          completedAt: new Date().toISOString(),
+          readingTime: story.readingTime,
+          questionsAttempted: story.questionsAttempted,
+          questionsCorrect: story.questionsCorrect,
+          accuracy,
+          themes: story.themes,
+        };
+
+        // Add to beginning of array (most recent first)
+        const updatedStories = [completedStory, ...progress.completedStories];
+
+        // Keep only last 100 stories to avoid excessive storage
+        if (updatedStories.length > 100) {
+          updatedStories.pop();
+        }
+
+        set({
+          progress: {
+            ...progress,
+            completedStories: updatedStories,
+            totalWordsRead: progress.totalWordsRead + story.wordCount,
+            totalReadingTime: progress.totalReadingTime + story.readingTime,
+            updatedAt: new Date().toISOString(),
+          },
+        });
+      },
+
+      // Sync with server (for backup and cross-device)
       // Sync with server (for backup and cross-device)
       syncWithServer: async () => {
         const { userId, progress, isSyncing } = get();

@@ -111,12 +111,25 @@ export interface SkillScores {
   summarization: number;
 }
 
+export interface CompletedStory {
+  id: string;
+  title: string;
+  completedAt: string;
+  readingTime: number; // seconds
+  questionsAttempted: number;
+  questionsCorrect: number;
+  accuracy: number; // 0-1
+  themes: string[];
+}
+
 export interface UserProgress {
   id: string;
   userId: string;
   totalStoriesRead: number;
   totalQuestionsAnswered: number;
   correctAnswers: number;
+  totalWordsRead: number;
+  totalReadingTime: number; // seconds
   skills: SkillScores;
   difficultyMultiplier: number; // 0.5 - 2.0
   preferredThemes: string[];
@@ -126,6 +139,7 @@ export interface UserProgress {
   longestStreak: number;
   lastActiveDate: string | null;
   hasCompletedOnboarding: boolean;
+  completedStories: CompletedStory[];
   createdAt: string;
   updatedAt: string;
 }

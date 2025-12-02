@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { BottomNav, LayoutWrapper } from "@/components/navigation";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -54,7 +55,10 @@ export default async function RootLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
-            {children}
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+            <BottomNav />
             <Toaster position="top-center" />
           </QueryProvider>
         </NextIntlClientProvider>
