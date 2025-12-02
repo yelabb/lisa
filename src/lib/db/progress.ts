@@ -213,6 +213,8 @@ function mapDbProgressToUserProgress(dbProgress: {
     totalStoriesRead: dbProgress.totalStoriesRead,
     totalQuestionsAnswered: dbProgress.totalQuestionsAnswered,
     correctAnswers: dbProgress.correctAnswers,
+    totalWordsRead: 0, // TODO: Track in database
+    totalReadingTime: 0, // TODO: Track in database
     skills: {
       comprehension: dbProgress.comprehensionScore,
       vocabulary: dbProgress.vocabularyScore,
@@ -227,6 +229,7 @@ function mapDbProgressToUserProgress(dbProgress: {
     longestStreak: dbProgress.longestStreak,
     lastActiveDate: dbProgress.lastActiveDate?.toISOString() || null,
     hasCompletedOnboarding: dbProgress.hasCompletedOnboarding,
+    completedStories: [], // TODO: Fetch from reading sessions
     createdAt: dbProgress.createdAt.toISOString(),
     updatedAt: dbProgress.updatedAt.toISOString(),
   };
