@@ -2,12 +2,15 @@
 
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface WelcomeScreenProps {
   onContinue: () => void;
 }
 
 export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
+  const t = useTranslations('onboarding');
+  
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -55,10 +58,10 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         className="text-center mb-12"
       >
         <h1 className="text-4xl font-light text-gray-800 mb-4">
-          Bonjour! 👋
+          {t('greeting')} 👋
         </h1>
         <p className="text-xl text-gray-600 font-light">
-          Je suis <span className="text-purple-600 font-medium">Lisa</span>
+          {t('iAmLisa')} <span className="text-purple-600 font-medium">Lisa</span>
         </p>
       </motion.div>
 
@@ -70,9 +73,9 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         className="max-w-md text-center mb-12"
       >
         <p className="text-lg text-gray-600 font-light leading-relaxed">
-          Je vais t&apos;aider à lire des histoires amusantes ! 
+          {t('helpMessage')}
           <br />
-          <span className="text-purple-500">On va apprendre ensemble 💜</span>
+          <span className="text-purple-500">{t('learnTogether')} 💜</span>
         </p>
       </motion.div>
 
@@ -86,7 +89,7 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         onClick={onContinue}
         className="px-12 py-5 bg-linear-to-r from-purple-500 to-pink-500 text-white text-xl font-medium rounded-full shadow-lg hover:shadow-xl transition-shadow"
       >
-        Commencer! ✨
+        {t('startButton')} ✨
       </motion.button>
     </motion.div>
   );

@@ -2,20 +2,28 @@
 
 import { motion } from 'framer-motion';
 import { BookOpen, Sparkles, Wand2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface LisaLoadingProps {
   message?: string;
   type?: 'story' | 'question' | 'general';
 }
 
-const LOADING_MESSAGES = {
-  story: "Creating a magical story just for you...",
-  question: "Thinking of fun questions...",
-  general: "Working on it...",
-};
-
 export function LisaLoading({ message, type = 'general' }: LisaLoadingProps) {
-  const displayMessage = message || LOADING_MESSAGES[type];
+  const t = useTranslations('common');
+  
+  const getDefaultMessage = () => {
+    switch (type) {
+      case 'story':
+        return t('creatingStory');
+      case 'question':
+        return t('thinkingQuestions');
+      default:
+        return t('workingOnIt');
+    }
+  };
+  
+  const displayMessage = message || getDefaultMessage();
 
   return (
     <div className="flex flex-col items-center justify-center p-12">
@@ -146,7 +154,7 @@ export function LisaLoading({ message, type = 'general' }: LisaLoadingProps) {
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          This will just take a moment ✨
+          {t('justMoment')} ✨
         </motion.p>
       </motion.div>
 
@@ -181,6 +189,8 @@ export function LisaContentSkeleton() {
 
 // Mini loading indicator for inline use
 export function LisaMiniLoader() {
+  const t = useTranslations('common');
+  
   return (
     <div className="inline-flex items-center gap-2">
       <motion.span
@@ -190,7 +200,7 @@ export function LisaMiniLoader() {
       >
         📚
       </motion.span>
-      <span className="text-sm text-gray-600">Lisa is thinking...</span>
+      <span className="text-sm text-gray-600">{t('lisaThinking')}</span>
     </div>
   );
 }

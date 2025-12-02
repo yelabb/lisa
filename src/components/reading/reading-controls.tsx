@@ -13,6 +13,7 @@ import {
   X,
   Sparkles
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { 
   useReadingSettingsStore, 
   getThemeStyles, 
@@ -26,52 +27,34 @@ interface ReadingControlsProps {
   language?: string;
 }
 
-const THEMES: { id: ReadingTheme; icon: React.ReactNode; label: { fr: string; en: string } }[] = [
-  { 
-    id: 'light', 
-    icon: <Sun size={18} />, 
-    label: { fr: 'Clair', en: 'Light' } 
-  },
-  { 
-    id: 'sepia', 
-    icon: <BookOpen size={18} />, 
-    label: { fr: 'Sépia', en: 'Sepia' } 
-  },
-  { 
-    id: 'dark', 
-    icon: <Moon size={18} />, 
-    label: { fr: 'Sombre', en: 'Dark' } 
-  },
-];
-
 const FONTS: { id: FontFamily; label: string; preview: string }[] = [
   { id: 'literata', label: 'Literata', preview: 'Aa' },
   { id: 'merriweather', label: 'Merriweather', preview: 'Aa' },
   { id: 'system', label: 'Sans-serif', preview: 'Aa' },
 ];
 
-const TEXTS = {
-  fr: {
-    title: 'Confort de lecture',
-    theme: 'Thème',
-    font: 'Police',
-    fontSize: 'Taille du texte',
-    lineHeight: 'Espacement',
-    reset: 'Réinitialiser',
-    preview: 'Aperçu du texte',
-  },
-  en: {
-    title: 'Reading comfort',
-    theme: 'Theme',
-    font: 'Font',
-    fontSize: 'Text size',
-    lineHeight: 'Spacing',
-    reset: 'Reset',
-    preview: 'Text preview',
-  },
-};
-
 export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingControlsProps) {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+  
+  const THEMES: { id: ReadingTheme; icon: React.ReactNode; label: string }[] = [
+    { 
+      id: 'light', 
+      icon: <Sun size={18} />, 
+      label: t('light')
+    },
+    { 
+      id: 'sepia', 
+      icon: <BookOpen size={18} />, 
+      label: t('sepia')
+    },
+    { 
+      id: 'dark', 
+      icon: <Moon size={18} />, 
+      label: t('dark')
+    },
+  ];
+  
   const {
     theme,
     fontFamily,
@@ -84,7 +67,6 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
     resetToDefaults,
   } = useReadingSettingsStore();
 
-  const t = TEXTS[language as keyof typeof TEXTS] || TEXTS.fr;
   const themeStyles = getThemeStyles(theme);
 
   const getFontFamilyStyle = (font: FontFamily) => {
@@ -125,7 +107,7 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
             <div className={`flex items-center justify-between p-4 border-b ${themeStyles.border}`}>
               <div className="flex items-center gap-2">
                 <Sparkles size={18} className="text-purple-500" />
-                <h3 className={`font-medium ${themeStyles.text}`}>{t.title}</h3>
+                <h3 className={`font-medium ${themeStyles.text}`}>{t('readingComfort')}</h3>
               </div>
               <button
                 onClick={onClose}
@@ -140,7 +122,7 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
               {/* Theme selection */}
               <div>
                 <label className={`block text-sm font-medium mb-3 ${themeStyles.textSecondary}`}>
-                  {t.theme}
+                  {t('theme')}
                 </label>
                 <div className="flex gap-2">
                   {THEMES.map((themeOption) => (
@@ -159,7 +141,7 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
                       <span className={`text-xs font-medium ${
                         theme === themeOption.id ? 'text-purple-700' : themeStyles.textSecondary
                       }`}>
-                        {themeOption.label[language as keyof typeof themeOption.label] || themeOption.label.fr}
+                        {themeOption.label}
                       </span>
                     </button>
                   ))}
@@ -169,7 +151,7 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
               {/* Font selection */}
               <div>
                 <label className={`block text-sm font-medium mb-3 ${themeStyles.textSecondary}`}>
-                  {t.font}
+                  {t('font')}
                 </label>
                 <div className="flex gap-2">
                   {FONTS.map((fontOption) => (
@@ -202,7 +184,7 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
               <div>
                 <label className={`flex items-center gap-2 text-sm font-medium mb-3 ${themeStyles.textSecondary}`}>
                   <Type size={14} />
-                  {t.fontSize}
+                  {t('fontSize')}
                 </label>
                 <div className="flex items-center gap-3">
                   <button
@@ -239,7 +221,7 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
               <div>
                 <label className={`flex items-center gap-2 text-sm font-medium mb-3 ${themeStyles.textSecondary}`}>
                   <AlignJustify size={14} />
-                  {t.lineHeight}
+                  {t('lineHeight')}
                 </label>
                 <div className="flex items-center gap-3">
                   <button
@@ -275,7 +257,7 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
               {/* Preview */}
               <div>
                 <label className={`block text-sm font-medium mb-3 ${themeStyles.textSecondary}`}>
-                  {t.preview}
+                  {t('preview')}
                 </label>
                 <div 
                   className={`p-4 rounded-xl border ${themeStyles.border} ${themeStyles.background}`}
@@ -305,7 +287,7 @@ export function ReadingControls({ isOpen, onClose, language = 'fr' }: ReadingCon
                   transition-colors ${themeStyles.textSecondary}`}
               >
                 <RotateCcw size={16} />
-                <span className="text-sm font-medium">{t.reset}</span>
+                <span className="text-sm font-medium">{t('reset')}</span>
               </button>
             </div>
           </motion.div>

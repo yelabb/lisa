@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ThemeSelectProps {
   language: string;
@@ -204,31 +205,10 @@ const THEME_CATEGORIES: ThemeCategory[] = [
   },
 ];
 
-const TEXTS = {
-  fr: {
-    title: 'Thèmes préférés',
-    subtitle: 'Choisis ce qui te passionne (au moins 1)',
-    continue: 'C\'est parti! 🚀',
-    minSelect: 'Choisis au moins 1 thème',
-    selected: 'sélectionné(s)',
-    expandCategory: 'Voir les thèmes',
-    collapseCategory: 'Réduire',
-  },
-  en: {
-    title: 'Favorite themes',
-    subtitle: 'Pick what you\'re passionate about (at least 1)',
-    continue: 'Let\'s go! 🚀',
-    minSelect: 'Pick at least 1 theme',
-    selected: 'selected',
-    expandCategory: 'See themes',
-    collapseCategory: 'Collapse',
-  },
-};
-
 export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  const t = TEXTS[language as keyof typeof TEXTS] || TEXTS.fr;
+  const t = useTranslations('onboarding');
   const canContinue = selectedThemes.length >= 1;
 
   const handleToggleTheme = (themeId: string) => {
@@ -271,10 +251,10 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
         className="text-center py-6 mb-4 sticky top-0 bg-gradient-to-b from-indigo-50 to-transparent z-10 w-full"
       >
         <h2 className="text-2xl font-semibold text-gray-800 mb-1">
-          {t.title}
+          {t('themesTitle')}
         </h2>
         <p className="text-gray-500 text-sm">
-          {t.subtitle}
+          {t('themesSubtitle')}
         </p>
         {selectedThemes.length > 0 && (
           <motion.div
@@ -283,7 +263,7 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
             className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium"
           >
             <Check size={14} />
-            {selectedThemes.length} {t.selected}
+            {selectedThemes.length} {t('themesSelected')}
           </motion.div>
         )}
       </motion.div>
@@ -392,7 +372,7 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
         <div className="max-w-2xl mx-auto">
           {selectedThemes.length === 0 && (
             <p className="text-center text-gray-400 text-sm mb-3">
-              {t.minSelect}
+              {t('themesMinSelect')}
             </p>
           )}
           <motion.button
@@ -406,7 +386,7 @@ export function ThemeSelect({ language, onContinue }: ThemeSelectProps) {
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            {t.continue}
+            {t('themesButton')} 🚀
           </motion.button>
         </div>
       </motion.div>

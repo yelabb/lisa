@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface LanguageSelectProps {
   onSelect: (language: string) => void;
@@ -15,6 +16,8 @@ const LANGUAGES = [
 
 export function LanguageSelect({ onSelect }: LanguageSelectProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+  const t = useTranslations('onboarding');
+  const tCommon = useTranslations('common');
 
   const handleSelect = (code: string) => {
     setSelectedLanguage(code);
@@ -41,7 +44,7 @@ export function LanguageSelect({ onSelect }: LanguageSelectProps) {
       >
         <div className="text-5xl mb-4">🌍</div>
         <h2 className="text-2xl font-light text-gray-800 mb-2">
-          Choisis ta langue
+          {t('chooseLanguage')}
         </h2>
         <p className="text-gray-500 font-light">
           Choose your language
@@ -108,7 +111,7 @@ export function LanguageSelect({ onSelect }: LanguageSelectProps) {
             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
         }`}
       >
-        {selectedLanguage === 'fr' ? 'Continuer' : selectedLanguage === 'en' ? 'Continue' : 'Continuer / Continue'} →
+        {tCommon('continue')} →
       </motion.button>
     </motion.div>
   );

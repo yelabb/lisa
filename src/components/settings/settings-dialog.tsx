@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { useUserProgressStore } from '@/stores';
+import { useTranslations } from 'next-intl';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -210,33 +211,6 @@ const THEME_CATEGORIES: ThemeCategory[] = [
   },
 ];
 
-const TEXTS = {
-  fr: {
-    title: 'Paramètres',
-    language: 'Langue',
-    difficulty: 'Difficulté',
-    difficultyHint: 'Ajuste la complexité des histoires',
-    difficultyLevels: ['Très facile', 'Facile', 'Normal', 'Difficile', 'Expert'],
-    themes: 'Thèmes préférés',
-    themesHint: 'Choisis au moins 1 thème',
-    save: 'Enregistrer',
-    cancel: 'Annuler',
-    selected: 'sélectionné(s)',
-  },
-  en: {
-    title: 'Settings',
-    language: 'Language',
-    difficulty: 'Difficulty',
-    difficultyHint: 'Adjust story complexity',
-    difficultyLevels: ['Very easy', 'Easy', 'Normal', 'Hard', 'Expert'],
-    themes: 'Favorite themes',
-    themesHint: 'Pick at least 1 theme',
-    save: 'Save',
-    cancel: 'Cancel',
-    selected: 'selected',
-  },
-};
-
 export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   const { language, progress, setLanguage, setPreferences, setDifficulty } = useUserProgressStore();
   
@@ -249,7 +223,17 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   );
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
-  const t = TEXTS[selectedLanguage as keyof typeof TEXTS] || TEXTS.fr;
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+  
+  // Get difficulty levels from translations
+  const difficultyLevels = [
+    t('difficultyLevel0'),
+    t('difficultyLevel1'),
+    t('difficultyLevel2'),
+    t('difficultyLevel3'),
+    t('difficultyLevel4')
+  ];
 
   // Sync with store when dialog opens
   useEffect(() => {
@@ -328,12 +312,12 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <Settings size={18} className="text-gray-400" />
-                <h2 className="text-lg font-medium text-gray-800">{t.title}</h2>
+                <h2 className="text-lg font-medium text-gray-800">{t('title')}</h2>
               </div>
               <div className="flex items-center gap-3">
                 {selectedThemes.length > 0 && (
                   <span className="text-xs text-purple-600 font-medium">
-                    {selectedThemes.length} {t.selected}
+                    {selectedThemes.length} {t('selected')}
                   </span>
                 )}
                 <button
@@ -350,7 +334,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
               {/* Language selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  {t.language}
+                  {t('language')}
                 </label>
                 <div className="flex gap-3">
                   {LANGUAGES.map((lang) => (
@@ -380,14 +364,14 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
               {/* Difficulty slider */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.difficulty}
+                  {t('difficulty')}
                 </label>
-                <p className="text-xs text-gray-400 mb-3">{t.difficultyHint}</p>
+                <p className="text-xs text-gray-400 mb-3">{t('difficultyHint')}</p>
                 
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                   {/* Difficulty level indicator */}
                   <div className="flex justify-between mb-3">
-                    {t.difficultyLevels.map((level, index) => {
+                    {difficultyLevels.map((level: string, index: number) => {
                       // Map index to difficulty: 0=0.5, 1=0.75, 2=1.0, 3=1.5, 4=2.0
                       const difficultyValues = [0.5, 0.75, 1.0, 1.5, 2.0];
                       const isActive = Math.abs(selectedDifficulty - difficultyValues[index]) < 0.13;
@@ -429,9 +413,9 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
               {/* Theme selection by categories */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.themes}
+                  {t('themes')}
                 </label>
-                <p className="text-xs text-gray-400 mb-3">{t.themesHint}</p>
+                <p className="text-xs text-gray-400 mb-3">{t('themesHint')}</p>
                 
                 <div className="space-y-2">
                   {THEME_CATEGORIES.map((category) => {
@@ -522,7 +506,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                 onClick={() => onClose(false)}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-gray-300 text-gray-600 font-medium hover:bg-gray-100 transition-colors"
               >
-                {t.cancel}
+                {tCommon('cancel')}
               </button>
               <button
                 onClick={handleSave}
@@ -533,7 +517,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                {t.save}
+                {tCommon('save')}
               </button>
             </div>
           </motion.div>

@@ -1,35 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 interface ReadyScreenProps {
   onStart: () => void;
   language: string;
 }
 
-const TEXTS = {
-  fr: {
-    ready: 'Tout est prêt!',
-    message: 'Je vais te montrer une histoire courte.',
-    tip1: '📖 Lis à ton rythme',
-    tip2: '👆 Clique sur n\'importe quel mot pour une explication rigolote!',
-    tip3: '❓ Réponds aux petites questions',
-    tip4: '🌟 Amuse-toi!',
-    start: 'Lire ma première histoire!',
-  },
-  en: {
-    ready: 'All set!',
-    message: 'I\'ll show you a short story.',
-    tip1: '📖 Read at your own pace',
-    tip2: '👆 Click any word for a fun explanation!',
-    tip3: '❓ Answer small questions',
-    tip4: '🌟 Have fun!',
-    start: 'Read my first story!',
-  },
-};
-
-export function ReadyScreen({ onStart, language }: ReadyScreenProps) {
-  const t = TEXTS[language as keyof typeof TEXTS] || TEXTS.fr;
+export function ReadyScreen({ onStart }: ReadyScreenProps) {
+  const t = useTranslations('onboarding');
 
   return (
     <motion.div 
@@ -56,10 +36,10 @@ export function ReadyScreen({ onStart, language }: ReadyScreenProps) {
         className="text-center mb-10"
       >
         <h2 className="text-3xl font-light text-gray-800 mb-3">
-          {t.ready}
+          {t('allSet')}
         </h2>
         <p className="text-lg text-gray-600 font-light">
-          {t.message}
+          {t('shortStory')}
         </p>
       </motion.div>
 
@@ -71,7 +51,7 @@ export function ReadyScreen({ onStart, language }: ReadyScreenProps) {
         className="bg-white rounded-3xl shadow-lg p-6 mb-10 max-w-sm w-full"
       >
         <div className="space-y-4">
-          {[t.tip1, t.tip2, t.tip3, t.tip4].map((tip, index) => (
+          {[t('tip1'), t('tip2'), t('tip3'), t('tip4')].map((tip, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, x: -20 }}
@@ -95,7 +75,7 @@ export function ReadyScreen({ onStart, language }: ReadyScreenProps) {
         onClick={onStart}
         className="px-10 py-5 bg-linear-to-r from-green-500 to-emerald-500 text-white text-xl font-medium rounded-full shadow-lg hover:shadow-xl transition-shadow"
       >
-        {t.start} →
+        {t('readFirstStory')} →
       </motion.button>
     </motion.div>
   );
