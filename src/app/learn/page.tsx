@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X, Shuffle, BookOpen, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useUserProgressStore, useReadingSessionStore, useReadingSettingsStore, getThemeStyles, getFontClass } from '@/stores';
 import { useGenerateStory, useAnswerQuestion, useCompleteStory, useStartSession } from '@/hooks';
 import { WelcomeScreen, LanguageSelect, ThemeSelect, ReadyScreen } from '@/components/onboarding';
-import { SettingsDialog } from '@/components/settings';
 import { ReadingControls, ReadingCountdown } from '@/components/reading';
 import type { StoryQuestion } from '@/types';
 
@@ -25,6 +25,10 @@ interface FunWordExplanation {
 type OnboardingStep = 'welcome' | 'language' | 'themes' | 'ready' | 'complete';
 
 export default function LearnPage() {
+  // Router for navigation
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   // i18n
   const tStory = useTranslations('story');
   const tFeedback = useTranslations('feedback');
@@ -94,7 +98,6 @@ export default function LearnPage() {
   const [showNavigationHint, setShowNavigationHint] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [showReadingControls, setShowReadingControls] = useState(false);
   // Cache for word explanations to avoid re-fetching
   const wordExplanationsCache = useRef<Map<string, FunWordExplanation>>(new Map());
@@ -265,6 +268,24 @@ export default function LearnPage() {
 
   // Track if initial load has been triggered
   const hasTriggeredLoadRef = useRef(false);
+
+  // Check if returning from settings with changed preferences
+  useEffect(() => {
+    const preferencesChanged = searchParams.get('preferencesChanged');
+    if (preferencesChanged === 'true' && story) {
+      // Clear the URL parameter
+      router.replace('/learn', { scroll: false });
+      // Generate a new story with updated preferences
+      const currentStoryId = story.id;
+      resetSession();
+      setSessionId(null);
+      setIsCompleted(false);
+      setShowFeedbackStep(null);
+      hasTriggeredLoadRef.current = false;
+      setShowCountdown(true);
+      loadNewStory(currentStoryId, true);
+    }
+  }, [searchParams, story, router, resetSession, loadNewStory]);
 
   // Pour les utilisateurs qui reviennent (onboarding déjà fait), charger l'histoire automatiquement
   useEffect(() => {
@@ -827,7 +848,7 @@ export default function LearnPage() {
 
             {/* Settings button */}
             <button
-              onClick={() => setShowSettings(true)}
+              onClick={() => router.push('/settings')}
               className={`w-8 h-8 rounded-full ${themeStyles.overlayBg} backdrop-blur-sm flex items-center justify-center 
                 transition-all opacity-60 hover:opacity-100 ${themeStyles.hoverBg}`}
               aria-label={tSettings('title')}
@@ -843,18 +864,6 @@ export default function LearnPage() {
         isOpen={showReadingControls} 
         onClose={() => setShowReadingControls(false)}
         language={language || 'fr'}
-      />
-
-      {/* Settings dialog */}
-      <SettingsDialog 
-        isOpen={showSettings} 
-        onClose={(preferencesChanged) => {
-          setShowSettings(false);
-          // Si les préférences ont changé, générer une nouvelle histoire
-          if (preferencesChanged && story) {
-            handleNextStory();
-          }
-        }} 
       />
 
       {/* Zone de lecture principale - Style e-reader */}

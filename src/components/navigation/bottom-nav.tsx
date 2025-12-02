@@ -17,8 +17,9 @@ export function BottomNav() {
   // Hide on learn page when story is active and not completed
   // Show menu when story is completed (lisaState is 'celebration' or 'success')
   const isOnLearnPage = pathname === '/learn';
+  const isOnSettingsPage = pathname === '/settings';
   const isStoryCompleted = lisaState === 'celebration' || lisaState === 'success';
-  const shouldHide = isOnLearnPage && story && !isStoryCompleted;
+  const shouldHide = isOnSettingsPage || (isOnLearnPage && story && !isStoryCompleted);
 
   const navItems = [
     {
