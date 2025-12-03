@@ -295,7 +295,6 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     
     onClose(themesChanged || difficultyChanged);
   };
-  };
 
   const canSave = selectedThemes.length >= 1;
 
