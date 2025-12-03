@@ -2,10 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, ArrowLeft, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useUserProgressStore } from '@/stores';
 import { useTranslations } from 'next-intl';
+import { LANGUAGES, type Locale } from '@/lib/locale-config';
+import { setUserLocale } from '@/lib/locale';
+
+// Filter languages by availability
+const availableLanguages = LANGUAGES.filter(l => l.available);
+const comingSoonLanguages = LANGUAGES.filter(l => !l.available);
 
 interface ThemeCategory {
   id: string;
@@ -21,11 +27,6 @@ interface Theme {
   fr: string;
   en: string;
 }
-
-const LANGUAGES = [
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-];
 
 const THEME_CATEGORIES: ThemeCategory[] = [
   {
@@ -261,10 +262,19 @@ export default function SettingsPage() {
     return category.themes.filter(theme => selectedThemes.includes(theme.id)).length;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    const originalLanguage = language || 'fr';
+    const languageChanged = selectedLanguage !== originalLanguage;
+    
     setLanguage(selectedLanguage);
     setPreferences(selectedThemes, progress?.interests || []);
     setDifficulty(selectedDifficulty);
+    
+    // Si la langue a changé, mettre à jour le cookie et rafraîchir
+    if (languageChanged) {
+      await setUserLocale(selectedLanguage as Locale);
+      router.refresh();
+    }
     
     // Navigate back with a flag indicating preferences changed
     router.push('/learn?preferencesChanged=true');
@@ -307,28 +317,55 @@ export default function SettingsPage() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             {t('language')}
           </label>
-          <div className="flex gap-3">
-            {LANGUAGES.map((lang) => (
+          
+          {/* Available languages - grid layout for 9 languages */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {availableLanguages.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => setSelectedLanguage(lang.code)}
-                className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                className={`relative flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 transition-all ${
                   selectedLanguage === lang.code
                     ? 'border-purple-400 bg-purple-50'
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-                <span className="text-xl">{lang.flag}</span>
-                <span className={`text-sm font-medium ${
+                <span className="text-2xl">{lang.flag}</span>
+                <span className={`text-xs font-medium text-center leading-tight ${
                   selectedLanguage === lang.code ? 'text-purple-700' : 'text-gray-600'
                 }`}>
-                  {lang.label}
+                  {lang.nativeLabel}
                 </span>
                 {selectedLanguage === lang.code && (
-                  <Check size={16} className="text-purple-500" />
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center"
+                  >
+                    <Check size={12} className="text-white" />
+                  </motion.div>
                 )}
               </button>
             ))}
+          </div>
+
+          {/* Coming soon languages - compact */}
+          <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-2">
+              {t('comingSoon')}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {comingSoonLanguages.map((lang) => (
+                <div
+                  key={lang.code}
+                  className="flex items-center gap-1 px-2 py-1 bg-white rounded-md border border-gray-100 opacity-60"
+                >
+                  <span className="text-sm">{lang.flag}</span>
+                  <span className="text-[10px] text-gray-400">{lang.nativeLabel}</span>
+                  <Lock size={8} className="text-gray-300" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Settings, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useUserProgressStore } from '@/stores';
 import { useTranslations } from 'next-intl';
-import { LANGUAGES } from '@/lib/locale-config';
+import { LANGUAGES, type Locale } from '@/lib/locale-config';
+import { setUserLocale } from '@/lib/locale';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -212,6 +214,7 @@ const THEME_CATEGORIES: ThemeCategory[] = [
 ];
 
 export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
+  const router = useRouter();
   const { language, progress, setLanguage, setPreferences, setDifficulty } = useUserProgressStore();
   
   const [selectedLanguage, setSelectedLanguage] = useState(language || 'fr');
@@ -267,21 +270,31 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     return category.themes.filter(theme => selectedThemes.includes(theme.id)).length;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Vérifier si les thèmes ou la difficulté ont changé
     const originalThemes = progress?.preferredThemes || [];
     const originalDifficulty = progress?.difficultyMultiplier || 1.0;
+    const originalLanguage = language || 'fr';
     
     const themesChanged = 
       selectedThemes.length !== originalThemes.length ||
       selectedThemes.some(theme => !originalThemes.includes(theme));
     
     const difficultyChanged = selectedDifficulty !== originalDifficulty;
+    const languageChanged = selectedLanguage !== originalLanguage;
     
     setLanguage(selectedLanguage);
     setPreferences(selectedThemes, progress?.interests || []);
     setDifficulty(selectedDifficulty);
+    
+    // Si la langue a changé, mettre à jour le cookie et rafraîchir
+    if (languageChanged) {
+      await setUserLocale(selectedLanguage as Locale);
+      router.refresh();
+    }
+    
     onClose(themesChanged || difficultyChanged);
+  };
   };
 
   const canSave = selectedThemes.length >= 1;
@@ -337,26 +350,32 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                   {t('language')}
                 </label>
                 
-                {/* Available languages */}
-                <div className="flex gap-3 mb-3">
+                {/* Available languages - grid layout for 9 languages */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
                   {availableLanguages.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => setSelectedLanguage(lang.code)}
-                      className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                      className={`relative flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 transition-all ${
                         selectedLanguage === lang.code
                           ? 'border-purple-400 bg-purple-50'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
-                      <span className="text-xl">{lang.flag}</span>
-                      <span className={`text-sm font-medium ${
+                      <span className="text-2xl">{lang.flag}</span>
+                      <span className={`text-xs font-medium text-center leading-tight ${
                         selectedLanguage === lang.code ? 'text-purple-700' : 'text-gray-600'
                       }`}>
                         {lang.nativeLabel}
                       </span>
                       {selectedLanguage === lang.code && (
-                        <Check size={16} className="text-purple-500" />
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center"
+                        >
+                          <Check size={12} className="text-white" />
+                        </motion.div>
                       )}
                     </button>
                   ))}
@@ -368,7 +387,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                     {t('comingSoon')}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {comingSoonLanguages.slice(0, 10).map((lang) => (
+                    {comingSoonLanguages.map((lang) => (
                       <div
                         key={lang.code}
                         className="flex items-center gap-1 px-2 py-1 bg-white rounded-md border border-gray-100 opacity-60"
@@ -378,11 +397,6 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                         <Lock size={8} className="text-gray-300" />
                       </div>
                     ))}
-                    {comingSoonLanguages.length > 10 && (
-                      <div className="flex items-center px-2 py-1 text-[10px] text-gray-400">
-                        +{comingSoonLanguages.length - 10}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
