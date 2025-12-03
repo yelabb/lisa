@@ -18,6 +18,17 @@ import itMessages from '../../../messages/it.json';
 import nlMessages from '../../../messages/nl.json';
 import plMessages from '../../../messages/pl.json';
 import trMessages from '../../../messages/tr.json';
+import ruMessages from '../../../messages/ru.json';
+import ukMessages from '../../../messages/uk.json';
+import arMessages from '../../../messages/ar.json';
+import zhMessages from '../../../messages/zh.json';
+import jaMessages from '../../../messages/ja.json';
+import koMessages from '../../../messages/ko.json';
+import hiMessages from '../../../messages/hi.json';
+import viMessages from '../../../messages/vi.json';
+import thMessages from '../../../messages/th.json';
+import idMessages from '../../../messages/id.json';
+import msMessages from '../../../messages/ms.json';
 
 // Initialize Groq client
 const groq = new Groq({
@@ -38,6 +49,17 @@ const messages: Record<string, typeof frMessages> = {
   nl: nlMessages,
   pl: plMessages,
   tr: trMessages,
+  ru: ruMessages,
+  uk: ukMessages,
+  ar: arMessages,
+  zh: zhMessages,
+  ja: jaMessages,
+  ko: koMessages,
+  hi: hiMessages,
+  vi: viMessages,
+  th: thMessages,
+  id: idMessages,
+  ms: msMessages,
 };
 
 /**

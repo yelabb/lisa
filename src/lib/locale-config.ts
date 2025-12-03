@@ -2,7 +2,7 @@
 export type Locale = 'en' | 'fr' | 'es' | 'pt' | 'de' | 'it' | 'nl' | 'pl' | 'ru' | 'uk' | 'tr' | 'ar' | 'zh' | 'ja' | 'ko' | 'hi' | 'vi' | 'th' | 'id' | 'ms';
 
 // Active locales (with translations available)
-export const ACTIVE_LOCALES: Locale[] = ['fr', 'en', 'es', 'pt', 'de', 'it', 'nl', 'pl', 'tr'];
+export const ACTIVE_LOCALES: Locale[] = ['fr', 'en', 'es', 'pt', 'de', 'it', 'nl', 'pl', 'tr', 'ru', 'uk', 'ar', 'zh', 'ja', 'ko', 'hi', 'vi', 'th', 'id', 'ms'];
 
 // All supported locales for future expansion
 export const LOCALES: Locale[] = ['en', 'fr', 'es', 'pt', 'de', 'it', 'nl', 'pl', 'ru', 'uk', 'tr', 'ar', 'zh', 'ja', 'ko', 'hi', 'vi', 'th', 'id', 'ms'];
@@ -32,20 +32,20 @@ export const LANGUAGES: LanguageInfo[] = [
   // European languages
   { code: 'nl', label: 'Dutch', nativeLabel: 'Nederlands', flag: '🇳🇱', available: true },
   { code: 'pl', label: 'Polish', nativeLabel: 'Polski', flag: '🇵🇱', available: true },
-  { code: 'ru', label: 'Russian', nativeLabel: 'Русский', flag: '🇷🇺', available: false },
-  { code: 'uk', label: 'Ukrainian', nativeLabel: 'Українська', flag: '🇺🇦', available: false },
+  { code: 'ru', label: 'Russian', nativeLabel: 'Русский', flag: '🇷🇺', available: true },
+  { code: 'uk', label: 'Ukrainian', nativeLabel: 'Українська', flag: '🇺🇦', available: true },
   { code: 'tr', label: 'Turkish', nativeLabel: 'Türkçe', flag: '🇹🇷', available: true },
   
   // Asian languages
-  { code: 'zh', label: 'Chinese', nativeLabel: '中文', flag: '🇨🇳', available: false },
-  { code: 'ja', label: 'Japanese', nativeLabel: '日本語', flag: '🇯🇵', available: false },
-  { code: 'ko', label: 'Korean', nativeLabel: '한국어', flag: '🇰🇷', available: false },
-  { code: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी', flag: '🇮🇳', available: false },
-  { code: 'vi', label: 'Vietnamese', nativeLabel: 'Tiếng Việt', flag: '🇻🇳', available: false },
-  { code: 'th', label: 'Thai', nativeLabel: 'ไทย', flag: '🇹🇭', available: false },
-  { code: 'id', label: 'Indonesian', nativeLabel: 'Bahasa Indonesia', flag: '🇮🇩', available: false },
-  { code: 'ms', label: 'Malay', nativeLabel: 'Bahasa Melayu', flag: '🇲🇾', available: false },
+  { code: 'zh', label: 'Chinese', nativeLabel: '中文', flag: '🇨🇳', available: true },
+  { code: 'ja', label: 'Japanese', nativeLabel: '日本語', flag: '🇯🇵', available: true },
+  { code: 'ko', label: 'Korean', nativeLabel: '한국어', flag: '🇰🇷', available: true },
+  { code: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी', flag: '🇮🇳', available: true },
+  { code: 'vi', label: 'Vietnamese', nativeLabel: 'Tiếng Việt', flag: '🇻🇳', available: true },
+  { code: 'th', label: 'Thai', nativeLabel: 'ไทย', flag: '🇹🇭', available: true },
+  { code: 'id', label: 'Indonesian', nativeLabel: 'Bahasa Indonesia', flag: '🇮🇩', available: true },
+  { code: 'ms', label: 'Malay', nativeLabel: 'Bahasa Melayu', flag: '🇲🇾', available: true },
   
   // Middle East
-  { code: 'ar', label: 'Arabic', nativeLabel: 'العربية', flag: '🇸🇦', available: false },
+  { code: 'ar', label: 'Arabic', nativeLabel: 'العربية', flag: '🇸🇦', available: true },
 ];
