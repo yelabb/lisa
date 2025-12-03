@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Pause, Play, ChevronLeft, ChevronRight, Loader2, RefreshCw, Settings, Check, X, Shuffle, BookOpen, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { setUserLocale } from '@/lib/locale';
+import type { Locale } from '@/lib/locale-config';
 
 import { useUserProgressStore, useReadingSessionStore, useReadingSettingsStore, getThemeStyles, getFontClass } from '@/stores';
 import { useGenerateStory, useAnswerQuestion, useCompleteStory, useStartSession } from '@/hooks';
@@ -174,8 +176,11 @@ export default function LearnPage() {
     setOnboardingStep('language');
   };
 
-  const handleLanguageSelect = (lang: string) => {
+  const handleLanguageSelect = async (lang: string) => {
     setLanguage(lang);
+    // Mettre à jour le cookie next-intl pour que la langue s'applique immédiatement
+    await setUserLocale(lang as Locale);
+    router.refresh();
     setOnboardingStep('themes');
   };
 
