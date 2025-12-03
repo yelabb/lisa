@@ -2,7 +2,7 @@
 export type Locale = 'en' | 'fr' | 'es' | 'pt' | 'de' | 'it' | 'nl' | 'pl' | 'ru' | 'uk' | 'tr' | 'ar' | 'zh' | 'ja' | 'ko' | 'hi' | 'vi' | 'th' | 'id' | 'ms';
 
 // Active locales (with translations available)
-export const ACTIVE_LOCALES: Locale[] = ['fr', 'en'];
+export const ACTIVE_LOCALES: Locale[] = ['fr', 'en', 'es', 'pt', 'de', 'it', 'nl', 'pl', 'tr'];
 
 // All supported locales for future expansion
 export const LOCALES: Locale[] = ['en', 'fr', 'es', 'pt', 'de', 'it', 'nl', 'pl', 'ru', 'uk', 'tr', 'ar', 'zh', 'ja', 'ko', 'hi', 'vi', 'th', 'id', 'ms'];
@@ -24,17 +24,17 @@ export const LANGUAGES: LanguageInfo[] = [
   // Most popular - always at top
   { code: 'fr', label: 'French', nativeLabel: 'Français', flag: '🇫🇷', available: true },
   { code: 'en', label: 'English', nativeLabel: 'English', flag: '🇬🇧', available: true },
-  { code: 'es', label: 'Spanish', nativeLabel: 'Español', flag: '🇪🇸', available: false },
-  { code: 'pt', label: 'Portuguese', nativeLabel: 'Português', flag: '🇧🇷', available: false },
-  { code: 'de', label: 'German', nativeLabel: 'Deutsch', flag: '🇩🇪', available: false },
-  { code: 'it', label: 'Italian', nativeLabel: 'Italiano', flag: '🇮🇹', available: false },
+  { code: 'es', label: 'Spanish', nativeLabel: 'Español', flag: '🇪🇸', available: true },
+  { code: 'pt', label: 'Portuguese', nativeLabel: 'Português', flag: '🇧🇷', available: true },
+  { code: 'de', label: 'German', nativeLabel: 'Deutsch', flag: '🇩🇪', available: true },
+  { code: 'it', label: 'Italian', nativeLabel: 'Italiano', flag: '🇮🇹', available: true },
   
   // European languages
-  { code: 'nl', label: 'Dutch', nativeLabel: 'Nederlands', flag: '🇳🇱', available: false },
-  { code: 'pl', label: 'Polish', nativeLabel: 'Polski', flag: '🇵🇱', available: false },
+  { code: 'nl', label: 'Dutch', nativeLabel: 'Nederlands', flag: '🇳🇱', available: true },
+  { code: 'pl', label: 'Polish', nativeLabel: 'Polski', flag: '🇵🇱', available: true },
   { code: 'ru', label: 'Russian', nativeLabel: 'Русский', flag: '🇷🇺', available: false },
   { code: 'uk', label: 'Ukrainian', nativeLabel: 'Українська', flag: '🇺🇦', available: false },
-  { code: 'tr', label: 'Turkish', nativeLabel: 'Türkçe', flag: '🇹🇷', available: false },
+  { code: 'tr', label: 'Turkish', nativeLabel: 'Türkçe', flag: '🇹🇷', available: true },
   
   // Asian languages
   { code: 'zh', label: 'Chinese', nativeLabel: '中文', flag: '🇨🇳', available: false },
