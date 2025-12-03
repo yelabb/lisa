@@ -11,6 +11,13 @@ import { READING_LEVEL_INFO } from '@/lib/constants';
 // Import messages directly for server-side use
 import frMessages from '../../../messages/fr.json';
 import enMessages from '../../../messages/en.json';
+import esMessages from '../../../messages/es.json';
+import ptMessages from '../../../messages/pt.json';
+import deMessages from '../../../messages/de.json';
+import itMessages from '../../../messages/it.json';
+import nlMessages from '../../../messages/nl.json';
+import plMessages from '../../../messages/pl.json';
+import trMessages from '../../../messages/tr.json';
 
 // Initialize Groq client
 const groq = new Groq({
@@ -24,6 +31,13 @@ const MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 const messages: Record<string, typeof frMessages> = {
   fr: frMessages,
   en: enMessages,
+  es: esMessages,
+  pt: ptMessages,
+  de: deMessages,
+  it: itMessages,
+  nl: nlMessages,
+  pl: plMessages,
+  tr: trMessages,
 };
 
 /**
