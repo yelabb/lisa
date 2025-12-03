@@ -43,6 +43,7 @@
   "settings": {
     "title": "Paramètres",
     "language": "Langue",
+    "comingSoon": "Bientôt disponible",
     "themes": "Thèmes préférés",
     "level": "Niveau de lecture",
     "difficulty": "Difficulté",
@@ -76,6 +77,7 @@
     "startButton": "C'est parti",
     "selectLanguage": "Choisis ta langue",
     "chooseLanguage": "Choisis ta langue",
+    "comingSoon": "Bientôt disponible",
     "selectThemes": "Qu'est-ce qui te passionne ?",
     "ready": "Tu es prêt à commencer !",
     "allSet": "Tout est prêt!",

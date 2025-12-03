@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Settings, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Check, Settings, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { useUserProgressStore } from '@/stores';
 import { useTranslations } from 'next-intl';
+import { LANGUAGES } from '@/lib/locale-config';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -26,10 +27,9 @@ interface Theme {
   en: string;
 }
 
-const LANGUAGES = [
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-];
+// Available languages for quick access
+const availableLanguages = LANGUAGES.filter(l => l.available);
+const comingSoonLanguages = LANGUAGES.filter(l => !l.available);
 
 const THEME_CATEGORIES: ThemeCategory[] = [
   {
@@ -336,8 +336,10 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   {t('language')}
                 </label>
-                <div className="flex gap-3">
-                  {LANGUAGES.map((lang) => (
+                
+                {/* Available languages */}
+                <div className="flex gap-3 mb-3">
+                  {availableLanguages.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => setSelectedLanguage(lang.code)}
@@ -351,13 +353,37 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                       <span className={`text-sm font-medium ${
                         selectedLanguage === lang.code ? 'text-purple-700' : 'text-gray-600'
                       }`}>
-                        {lang.label}
+                        {lang.nativeLabel}
                       </span>
                       {selectedLanguage === lang.code && (
                         <Check size={16} className="text-purple-500" />
                       )}
                     </button>
                   ))}
+                </div>
+
+                {/* Coming soon languages - compact */}
+                <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-2">
+                    {t('comingSoon')}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {comingSoonLanguages.slice(0, 10).map((lang) => (
+                      <div
+                        key={lang.code}
+                        className="flex items-center gap-1 px-2 py-1 bg-white rounded-md border border-gray-100 opacity-60"
+                      >
+                        <span className="text-sm">{lang.flag}</span>
+                        <span className="text-[10px] text-gray-400">{lang.nativeLabel}</span>
+                        <Lock size={8} className="text-gray-300" />
+                      </div>
+                    ))}
+                    {comingSoonLanguages.length > 10 && (
+                      <div className="flex items-center px-2 py-1 text-[10px] text-gray-400">
+                        +{comingSoonLanguages.length - 10}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
