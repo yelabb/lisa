@@ -9,11 +9,18 @@
   </p>
 </div>
 
+<img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/d9395e41-b2dc-42d2-aa38-61675a9dc859" />
+<img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/17567d32-6425-4149-8a0d-bf5b69ac0b46" />
+<img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/d9ba7c90-d237-4366-a192-6c69a38bd91c" />
+<img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/8861c56b-eaed-46f9-a731-072d9f0d3f97" />
+<img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/a67a2807-ad13-439e-8f2d-4f414ff51e62" />
+<img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/2bfed80c-daac-4e44-9658-a75f93e7fe1f" />
+
 ---
 
 ## 🌟 Overview
 
-**Lisa** is an open-source, AI-powered learning platform designed to help children aged 5-12 develop stronger reading comprehension skills through personalized, adaptive storytelling. Think of it as "Duolingo for reading literacy" – combining engaging narratives with intelligent assessment to create a natural, judgment-free learning experience.
+**Lisa** is an open-source, AI-powered learning platform designed to help children develop stronger reading comprehension skills through personalized, adaptive storytelling. Think of it as "Duolingo for reading literacy" – combining engaging narratives with intelligent assessment to create a natural, judgment-free learning experience.
 
 ### Why Lisa?
 
@@ -357,3 +364,4 @@ You are free to:
     <a href="https://github.com/yelabb/lisa/issues/new">🐛 Report Bug</a>
   </p>
 </div>
+
