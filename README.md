@@ -8,13 +8,16 @@
     <a href="#-contributing">Contributing</a>
   </p>
 </div>
-
+<div align="center">
 <img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/d9395e41-b2dc-42d2-aa38-61675a9dc859" />
 <img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/17567d32-6425-4149-8a0d-bf5b69ac0b46" />
 <img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/d9ba7c90-d237-4366-a192-6c69a38bd91c" />
 <img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/8861c56b-eaed-46f9-a731-072d9f0d3f97" />
 <img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/a67a2807-ad13-439e-8f2d-4f414ff51e62" />
 <img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/2bfed80c-daac-4e44-9658-a75f93e7fe1f" />
+<img width="377" height="667" alt="image" src="https://github.com/user-attachments/assets/33b2f734-89fb-4d35-b96a-51a9940a0cd5" />
+<img width="371" height="669" alt="image" src="https://github.com/user-attachments/assets/67826770-4903-4e46-bfd4-e5e6a2a015a7" />
+</div>
 
 ---
 
@@ -364,4 +367,5 @@ You are free to:
     <a href="https://github.com/yelabb/lisa/issues/new">🐛 Report Bug</a>
   </p>
 </div>
+
 
