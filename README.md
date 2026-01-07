@@ -355,7 +355,6 @@ You are free to:
 
 - **Issues**: [GitHub Issues](https://github.com/yelabb/lisa/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/yelabb/lisa/discussions)
-- **Email**: [Contact us](mailto:support@lisa-app.com)
 
 ---
 
@@ -367,5 +366,6 @@ You are free to:
     <a href="https://github.com/yelabb/lisa/issues/new">🐛 Report Bug</a>
   </p>
 </div>
+
 
 
